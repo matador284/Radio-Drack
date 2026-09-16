@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Station } from "@/lib/types";
+import { TranslationDict } from "@/lib/translations";
 import { radioApi } from "@/lib/api";
 import { SPOTLIGHT_STATIONS } from "@/lib/curatedStations";
-import { Play, Pause, Heart, Radio, Sparkles, ChevronRight, ChevronLeft, Globe2 } from "lucide-react";
+import { Play, Pause, Heart, Radio, Sparkles } from "lucide-react";
 
 interface DiscoverViewProps {
   currentStation: Station | null;
@@ -12,14 +13,7 @@ interface DiscoverViewProps {
   onPlayStation: (station: Station) => void;
   onToggleFavorite: (station: Station) => void;
   isFavorite: (station: Station) => boolean;
-}
-
-interface DiscoverCategory {
-  id: string;
-  title: string;
-  subtitle: string;
-  tag: string;
-  stations: Station[];
+  t: TranslationDict;
 }
 
 export const DiscoverView: React.FC<DiscoverViewProps> = ({
@@ -28,90 +22,35 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   onPlayStation,
   onToggleFavorite,
   isFavorite,
+  t,
 }) => {
-  const [categories, setCategories] = useState<DiscoverCategory[]>([
-    {
-      id: "around_the_world",
-      title: "Around the world",
-      subtitle: "Globally acclaimed stations broadcasting timeless cultural streams",
-      tag: "eclectic",
-      stations: SPOTLIGHT_STATIONS,
-    },
-    {
-      id: "brazil",
-      title: "Brazil",
-      subtitle: "MPB, bossa nova, samba-rock and Brazilian frequencies from São Paulo to Bahia",
-      tag: "brazil",
-      stations: [],
-    },
-    {
-      id: "electronic",
-      title: "Electronic & Club",
-      subtitle: "House, techno, synthwave and deep warehouse sets worldwide",
-      tag: "electronic",
-      stations: [],
-    },
-    {
-      id: "late_night",
-      title: "Late night",
-      subtitle: "Subtle ambient, midnight jazz, downtempo and ethereal textures",
-      tag: "ambient",
-      stations: [],
-    },
-    {
-      id: "jazz",
-      title: "Jazz & Blues",
-      subtitle: "Pure acoustic brass, blue note archives and contemporary innovators",
-      tag: "jazz",
-      stations: [],
-    },
-    {
-      id: "news",
-      title: "News & Talk",
-      subtitle: "Global journalism, spoken word, culture and live discussion",
-      tag: "news",
-      stations: [],
-    },
-  ]);
+  const [brStations, setBrStations] = useState<Station[]>([]);
+  const [elecStations, setElecStations] = useState<Station[]>([]);
+  const [ambientStations, setAmbientStations] = useState<Station[]>([]);
+  const [jazzStations, setJazzStations] = useState<Station[]>([]);
+  const [newsStations, setNewsStations] = useState<Station[]>([]);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadDiscoverSections() {
       try {
-        const [brStations, elecStations, ambientStations, jazzStations, newsStations] =
-          await Promise.all([
-            radioApi.getStationsByCountry("Brazil", 12),
-            radioApi.getStationsByTag("electronic", 12),
-            radioApi.getStationsByTag("ambient", 12),
-            radioApi.getStationsByTag("jazz", 12),
-            radioApi.getStationsByTag("news", 12),
-          ]);
+        const [br, elec, ambient, jazz, news] = await Promise.all([
+          radioApi.getStationsByCountry("Brazil", 12),
+          radioApi.getStationsByTag("electronic", 12),
+          radioApi.getStationsByTag("ambient", 12),
+          radioApi.getStationsByTag("jazz", 12),
+          radioApi.getStationsByTag("news", 12),
+        ]);
 
         if (!isMounted) return;
-
-        setCategories((prev) =>
-          prev.map((cat) => {
-            if (cat.id === "brazil" && brStations.length > 0) {
-              return { ...cat, stations: brStations };
-            }
-            if (cat.id === "electronic" && elecStations.length > 0) {
-              return { ...cat, stations: elecStations };
-            }
-            if (cat.id === "late_night" && ambientStations.length > 0) {
-              return { ...cat, stations: ambientStations };
-            }
-            if (cat.id === "jazz" && jazzStations.length > 0) {
-              return { ...cat, stations: jazzStations };
-            }
-            if (cat.id === "news" && newsStations.length > 0) {
-              return { ...cat, stations: newsStations };
-            }
-            return cat;
-          })
-        );
+        if (br.length > 0) setBrStations(br);
+        if (elec.length > 0) setElecStations(elec);
+        if (ambient.length > 0) setAmbientStations(ambient);
+        if (jazz.length > 0) setJazzStations(jazz);
+        if (news.length > 0) setNewsStations(news);
       } catch {
-        // preserve curated defaults
+        // preserve curated
       }
     }
 
@@ -122,24 +61,69 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
     };
   }, []);
 
+  const sections = [
+    {
+      id: "around_the_world",
+      title: t.discover.categories.aroundWorld.title,
+      subtitle: t.discover.categories.aroundWorld.subtitle,
+      tag: "eclectic",
+      stations: SPOTLIGHT_STATIONS,
+    },
+    {
+      id: "brazil",
+      title: t.discover.categories.brazil.title,
+      subtitle: t.discover.categories.brazil.subtitle,
+      tag: "brazil",
+      stations: brStations.length > 0 ? brStations : SPOTLIGHT_STATIONS.slice(4, 6),
+    },
+    {
+      id: "electronic",
+      title: t.discover.categories.electronic.title,
+      subtitle: t.discover.categories.electronic.subtitle,
+      tag: "electronic",
+      stations: elecStations.length > 0 ? elecStations : SPOTLIGHT_STATIONS.slice(2, 4),
+    },
+    {
+      id: "late_night",
+      title: t.discover.categories.lateNight.title,
+      subtitle: t.discover.categories.lateNight.subtitle,
+      tag: "ambient",
+      stations: ambientStations.length > 0 ? ambientStations : SPOTLIGHT_STATIONS.slice(3, 5),
+    },
+    {
+      id: "jazz",
+      title: t.discover.categories.jazz.title,
+      subtitle: t.discover.categories.jazz.subtitle,
+      tag: "jazz",
+      stations: jazzStations.length > 0 ? jazzStations : SPOTLIGHT_STATIONS.slice(0, 2),
+    },
+    {
+      id: "news",
+      title: t.discover.categories.news.title,
+      subtitle: t.discover.categories.news.subtitle,
+      tag: "news",
+      stations: newsStations.length > 0 ? newsStations : SPOTLIGHT_STATIONS.slice(1, 3),
+    },
+  ];
+
   return (
     <div className="w-full min-h-screen pt-24 pb-36 px-6 sm:px-12 max-w-7xl mx-auto space-y-12">
       {/* Editorial Header */}
       <div className="space-y-2 border-b border-white/[0.08] pb-8">
         <div className="flex items-center gap-2 text-[#e8c374] text-xs font-mono tracking-widest uppercase">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>EDITORIAL CURATION</span>
+          <span>{t.discover.badge}</span>
         </div>
         <h1 className="text-4xl sm:text-6xl font-light text-white/95 font-serif tracking-tight">
-          Discover.
+          {t.discover.title}
         </h1>
         <p className="text-sm text-white/40 max-w-2xl font-mono tracking-wide leading-relaxed">
-          Curated acoustic journeys through genres, continents and underground frequencies. Pick a shelf and let the broadcast carry you.
+          {t.discover.desc}
         </p>
       </div>
 
       {/* Category Sections with Horizontal Carousels */}
-      {categories.map((category) => (
+      {sections.map((category) => (
         <section key={category.id} className="space-y-4">
           <div className="flex items-end justify-between">
             <div>
@@ -151,7 +135,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
               </p>
             </div>
             <div className="text-[11px] font-mono text-white/30 hidden sm:block">
-              {category.stations.length} FREQUENCIES
+              {category.stations.length} {t.discover.frequencies}
             </div>
           </div>
 
@@ -227,7 +211,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                   {/* Bottom Row: Bitrate + Play Button */}
                   <div className="flex items-center justify-between pt-4 mt-3 border-t border-white/[0.04]">
                     <span className="text-[10px] font-mono text-white/30 tracking-wider">
-                      {st.bitrate ? `${st.bitrate} KBPS` : "LIVE STREAM"}
+                      {st.bitrate ? `${st.bitrate} KBPS` : "LIVE"}
                     </span>
 
                     <button
@@ -242,12 +226,12 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                       {isCurrent && isPlaying ? (
                         <>
                           <Pause className="w-3.5 h-3.5 fill-current" />
-                          <span>PAUSE</span>
+                          <span>{t.discover.pause}</span>
                         </>
                       ) : (
                         <>
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>TUNE IN</span>
+                          <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                          <span>{t.discover.tuneIn}</span>
                         </>
                       )}
                     </button>

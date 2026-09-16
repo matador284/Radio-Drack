@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Station } from "@/lib/types";
+import { TranslationDict } from "@/lib/translations";
 import { AudioVisualizer } from "./AudioVisualizer";
 import {
   Play,
@@ -33,6 +34,7 @@ interface RadioPlayerProps {
   onToggleMute: () => void;
   onToggleFavorite: () => void;
   onRetry: () => void;
+  t: TranslationDict;
 }
 
 export const RadioPlayer: React.FC<RadioPlayerProps> = ({
@@ -50,6 +52,7 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
   onToggleMute,
   onToggleFavorite,
   onRetry,
+  t,
 }) => {
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -60,10 +63,10 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 text-white/40 text-xs tracking-wider uppercase font-mono">
             <Radio className="w-4 h-4 animate-pulse text-[#e8c374]/60" />
-            <span>Select a station or city on the globe to tune in</span>
+            <span>{t.player.selectToTune}</span>
           </div>
           <div className="text-xs text-white/30 font-mono tracking-widest uppercase">
-            RADIO DRACK · READY
+            {t.player.ready}
           </div>
         </div>
       </div>
@@ -117,18 +120,18 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
               {status === "TUNED_IN" && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  LIVE
+                  {t.player.live}
                 </span>
               )}
               {status === "TUNING" && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest bg-sky-500/10 text-sky-400 border border-sky-500/20 animate-pulse">
-                  TUNING…
+                  {t.player.tuning}
                 </span>
               )}
               {status === "SIGNAL_LOST" && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
                   <AlertCircle className="w-2.5 h-2.5" />
-                  SIGNAL LOST
+                  {t.player.signalLost}
                 </span>
               )}
             </div>
@@ -143,9 +146,9 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
           <div className="flex items-center gap-4 sm:gap-6">
             <button
               onClick={onPrevious}
-              aria-label="Previous station"
+              aria-label={t.player.previous}
               className="text-white/50 hover:text-white/90 active:scale-95 transition-all p-1"
-              title="Previous Station"
+              title={t.player.previous}
             >
               <SkipBack className="w-4 h-4" />
             </button>
@@ -153,16 +156,16 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
             {status === "SIGNAL_LOST" ? (
               <button
                 onClick={onRetry}
-                aria-label="Try Again"
+                aria-label={t.player.tryAgain}
                 className="w-10 h-10 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 flex items-center justify-center transition-all active:scale-95 group"
-                title="Retry stream"
+                title={t.player.tryAgain}
               >
                 <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
               </button>
             ) : (
               <button
                 onClick={onTogglePlay}
-                aria-label={isPlaying ? "Pause station" : "Play station"}
+                aria-label={isPlaying ? "Pause" : "Play"}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 relative ${
                   isPlaying
                     ? "bg-[#e8c374] text-black shadow-[0_0_20px_rgba(232,195,116,0.4)] hover:bg-[#f5d382]"
@@ -181,9 +184,9 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
 
             <button
               onClick={onNext}
-              aria-label="Next station"
+              aria-label={t.player.next}
               className="text-white/50 hover:text-white/90 active:scale-95 transition-all p-1"
-              title="Next Station"
+              title={t.player.next}
             >
               <SkipForward className="w-4 h-4" />
             </button>
@@ -206,7 +209,7 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
             <button
               onClick={onToggleMute}
               className="text-white/40 hover:text-white/90 transition-colors p-1"
-              title={isMuted ? "Unmute" : "Mute"}
+              title={isMuted ? t.player.unmute : t.player.mute}
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="w-4 h-4 text-red-400/80" />
@@ -229,13 +232,13 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
           {/* Favorite */}
           <button
             onClick={onToggleFavorite}
-            aria-label={isFavorite ? "Remove favorite" : "Add to favorites"}
+            aria-label={t.player.favorite}
             className={`p-2 rounded-lg border transition-all active:scale-90 ${
               isFavorite
                 ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
                 : "bg-white/[0.03] border-white/[0.06] text-white/40 hover:text-white hover:border-white/20"
             }`}
-            title={isFavorite ? "Favorited" : "Favorite Station"}
+            title={t.player.favorite}
           >
             <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
           </button>
@@ -243,9 +246,9 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
           {/* Share */}
           <button
             onClick={handleShare}
-            aria-label="Share frequency"
+            aria-label={t.player.share}
             className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-white hover:border-white/20 transition-all active:scale-90 relative"
-            title="Share Station"
+            title={t.player.share}
           >
             {copied ? (
               <Check className="w-4 h-4 text-emerald-400" />
@@ -254,7 +257,7 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
             )}
             {copied && (
               <span className="absolute -top-7 right-0 text-[10px] font-mono tracking-wider bg-emerald-500 text-black font-semibold px-1.5 py-0.5 rounded shadow">
-                COPIED!
+                {t.player.copied}
               </span>
             )}
           </button>

@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sparkles, Globe, Compass, ArrowRight } from "lucide-react";
+import { TranslationDict } from "@/lib/translations";
+import { Compass, ArrowRight } from "lucide-react";
 
 interface IntroSplashProps {
   onStart: () => void;
+  t: TranslationDict;
 }
 
-export const IntroSplash: React.FC<IntroSplashProps> = ({ onStart }) => {
+export const IntroSplash: React.FC<IntroSplashProps> = ({ onStart, t }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
@@ -23,24 +25,22 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onStart }) => {
       <div className="relative z-10 max-w-xl space-y-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono tracking-widest uppercase text-[#e8c374]">
           <Compass className="w-3.5 h-3.5 animate-spin-slow" />
-          <span>RADIO DRACK · WORLD ATLAS</span>
+          <span>{t.intro.tag}</span>
         </div>
 
         {step === 1 && (
           <h1 className="text-4xl sm:text-6xl font-light text-white font-serif tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700">
-            A world of sound.
+            {t.intro.headline1}
           </h1>
         )}
 
         {step >= 2 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-4xl sm:text-6xl font-light text-white font-serif tracking-tight">
-              Thousands of stations.
-              <br />
-              <span className="text-[#f5d382]">One planet.</span>
+            <h1 className="text-4xl sm:text-6xl font-light text-white font-serif tracking-tight whitespace-pre-line">
+              {t.intro.headline2}
             </h1>
             <p className="text-sm text-white/40 font-mono tracking-wide max-w-md mx-auto">
-              Real-time atmospheric radio waves streamed directly from cities across every continent.
+              {t.intro.subheadline}
             </p>
           </div>
         )}
@@ -50,7 +50,7 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onStart }) => {
             onClick={onStart}
             className="px-6 py-3 rounded-xl bg-[#e8c374] hover:bg-[#f5d382] text-black text-xs font-mono font-semibold tracking-widest uppercase shadow-[0_0_30px_rgba(232,195,116,0.4)] transition-all active:scale-95 flex items-center gap-2 group"
           >
-            <span>START EXPLORING</span>
+            <span>{t.intro.startExploring}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -59,7 +59,7 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onStart }) => {
           onClick={onStart}
           className="text-[11px] font-mono tracking-wider text-white/30 hover:text-white/60 transition-colors uppercase pt-2"
         >
-          Skip intro
+          {t.intro.skip}
         </button>
       </div>
     </div>

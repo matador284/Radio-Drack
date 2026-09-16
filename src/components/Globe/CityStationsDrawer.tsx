@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Station, City } from "@/lib/types";
+import { TranslationDict } from "@/lib/translations";
 import { Play, Pause, Radio, X, Heart, ExternalLink } from "lucide-react";
 
 interface CityStationsDrawerProps {
@@ -15,6 +16,7 @@ interface CityStationsDrawerProps {
   onPlayStation: (station: Station) => void;
   onToggleFavorite: (station: Station) => void;
   isFavorite: (station: Station) => boolean;
+  t: TranslationDict;
 }
 
 export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
@@ -28,25 +30,26 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
   onPlayStation,
   onToggleFavorite,
   isFavorite,
+  t,
 }) => {
   if (!isOpen) return null;
 
   return (
     <aside
-      aria-label={`Stations in ${city.name}`}
+      aria-label={`${t.drawer.stationsIn} ${city.name}`}
       className="fixed inset-y-0 right-0 z-30 w-full sm:w-[420px] bg-[#07080c]/95 backdrop-blur-2xl border-l border-white/[0.08] shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-all duration-300 animate-in slide-in-from-right"
     >
       {/* Header */}
       <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
         <div>
           <div className="text-[10px] font-mono tracking-widest text-[#e8c374] uppercase">
-            STATIONS IN {city.country}
+            {t.drawer.stationsIn} {city.country}
           </div>
           <h3 className="text-2xl font-light text-white font-serif mt-0.5">
             {city.name}.
           </h3>
           <p className="text-xs text-white/40 font-mono mt-0.5">
-            {stations.length} broadcast frequencies found
+            {stations.length} {t.drawer.frequenciesFound}
           </p>
         </div>
         <button
@@ -77,8 +80,8 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
         ) : stations.length === 0 ? (
           <div className="py-16 text-center text-white/40 space-y-2">
             <Radio className="w-8 h-8 mx-auto text-white/20" />
-            <p className="text-xs font-mono">No live stations returned for this region.</p>
-            <p className="text-[11px] text-white/30">Try scanning nearby frequencies.</p>
+            <p className="text-xs font-mono">{t.drawer.noStations}</p>
+            <p className="text-[11px] text-white/30">{t.drawer.tryNearby}</p>
           </div>
         ) : (
           stations.map((st) => {
@@ -107,7 +110,6 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
                         alt={st.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // fallback
                           (e.currentTarget as HTMLElement).style.display = "none";
                         }}
                       />
@@ -181,7 +183,7 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
           rel="noreferrer"
           className="hover:text-white/60 inline-flex items-center gap-1"
         >
-          <span>INDEX</span>
+          <span>{t.drawer.apiIndex}</span>
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>

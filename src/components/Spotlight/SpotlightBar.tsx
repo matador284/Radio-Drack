@@ -2,13 +2,15 @@
 
 import React from "react";
 import { Station } from "@/lib/types";
-import { Play, Pause, Radio, Flame } from "lucide-react";
+import { TranslationDict } from "@/lib/translations";
+import { Play, Pause, Flame } from "lucide-react";
 
 interface SpotlightBarProps {
   stations: Station[];
   currentStation: Station | null;
   isPlaying: boolean;
   onPlayStation: (station: Station) => void;
+  t: TranslationDict;
 }
 
 export const SpotlightBar: React.FC<SpotlightBarProps> = ({
@@ -16,13 +18,14 @@ export const SpotlightBar: React.FC<SpotlightBarProps> = ({
   currentStation,
   isPlaying,
   onPlayStation,
+  t,
 }) => {
   return (
     <div className="absolute bottom-24 left-6 sm:left-12 right-6 sm:right-auto z-20 pointer-events-auto">
       <div className="flex items-center gap-2 mb-2">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-widest uppercase text-white/50">
           <Flame className="w-3 h-3 text-[#e8c374]" />
-          SPOTLIGHT · CURATED FREQUENCIES
+          {t.spotlight.title}
         </span>
       </div>
 

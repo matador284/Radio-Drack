@@ -6,6 +6,7 @@ import { WORLD_CITIES } from "@/lib/cities";
 import { SPOTLIGHT_STATIONS } from "@/lib/curatedStations";
 import { radioApi } from "@/lib/api";
 import { storage } from "@/lib/storage";
+import { Language, TRANSLATIONS } from "@/lib/translations";
 
 import { Navigation } from "@/components/Navigation";
 import { ExploreView } from "@/components/Views/ExploreView";
@@ -16,18 +17,20 @@ import { CommandPalette } from "@/components/Search/CommandPalette";
 import { IntroSplash } from "@/components/Intro/IntroSplash";
 
 export default function Home() {
-  // Navigation & View
+  // Navigation, View & Language (Default: pt - Português Brasil)
   const [currentView, setCurrentView] = useState<AppView>("explore");
+  const [currentLang, setCurrentLang] = useState<Language>("pt");
+  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.pt;
 
-  // Cities & Stations
+  // Cities & Stations (São Paulo default when in PT)
   const [cities] = useState<City[]>(WORLD_CITIES);
-  const [selectedCity, setSelectedCity] = useState<City>(WORLD_CITIES[0]); // Paris initially
+  const [selectedCity, setSelectedCity] = useState<City>(WORLD_CITIES[2]); // São Paulo default
   const [cityStations, setCityStations] = useState<Station[]>([]);
   const [isLoadingStations, setIsLoadingStations] = useState(false);
   const [spotlightStations] = useState<Station[]>(SPOTLIGHT_STATIONS);
 
   // Audio & Player state
-  const [currentStation, setCurrentStation] = useState<Station | null>(SPOTLIGHT_STATIONS[0]);
+  const [currentStation, setCurrentStation] = useState<Station | null>(SPOTLIGHT_STATIONS[5]); // Alpha FM SP default
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [audioStatus, setAudioStatus] = useState<"IDLE" | "TUNING" | "TUNED_IN" | "SIGNAL_LOST">("IDLE");
@@ -50,15 +53,17 @@ export default function Home() {
 
   // Audio HTML Element Ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Initial Storage Load
+  // 1. Initial Storage Load (Language, History, Favorites)
   useEffect(() => {
     setFavorites(storage.getFavorites());
     setHistory(storage.getHistory());
     setVisitedCities(storage.getVisitedCities());
     const storedVol = storage.getVolume();
     setVolume(storedVol);
+
+    const storedLang = storage.getLanguage();
+    setCurrentLang(storedLang);
 
     if (!storage.isIntroShown()) {
       setIsIntroVisible(true);
@@ -101,6 +106,12 @@ export default function Home() {
       audio.src = "";
     };
   }, []);
+
+  // Language change handler
+  const handleSelectLang = (lang: Language) => {
+    setCurrentLang(lang);
+    storage.saveLanguage(lang);
+  };
 
   // 2. Global Shortcut: Ctrl+K / Cmd+K
   useEffect(() => {
@@ -273,30 +284,23 @@ export default function Home() {
     const available = WORLD_CITIES.filter((c) => c.name !== selectedCity.name);
     const randomCity = available[Math.floor(Math.random() * available.length)];
 
-    const messages = [
-      `Searching the airwaves…`,
-      `Crossing the hemisphere…`,
-      `Aligning coordinates to ${randomCity.name}…`,
-      `Tuning into ${randomCity.name}…`,
-      `Catching the frequency…`,
-    ];
+    const messages = t.globe.tuningMessages;
     setTuningMessage(messages[Math.floor(Math.random() * messages.length)]);
     setIsTuningVisible(true);
 
     setSelectedCity(randomCity);
     setCurrentView("explore");
 
-    // Hide transition banner after 2.2s
     setTimeout(() => {
       setIsTuningVisible(false);
     }, 2200);
-  }, [selectedCity.name]);
+  }, [selectedCity.name, t.globe.tuningMessages]);
 
   const triggerTakeMeSomewhere = useCallback(async () => {
     const available = WORLD_CITIES.filter((c) => c.name !== selectedCity.name);
     const randomCity = available[Math.floor(Math.random() * available.length)];
 
-    setTuningMessage(`Crossing the Atlantic… Tuning into ${randomCity.name}`);
+    setTuningMessage(t.globe.randomTripMessage(randomCity.name));
     setIsTuningVisible(true);
 
     setSelectedCity(randomCity);
@@ -315,7 +319,7 @@ export default function Home() {
     setTimeout(() => {
       setIsTuningVisible(false);
     }, 2500);
-  }, [selectedCity.name, playStation]);
+  }, [selectedCity.name, playStation, t.globe]);
 
   const handleSelectCityByName = (cityName: string) => {
     const found = WORLD_CITIES.find((c) => c.name.toLowerCase() === cityName.toLowerCase());
@@ -330,6 +334,7 @@ export default function Home() {
       {/* Cinematic Intro Splash (shown on first visit, dismissible) */}
       {isIntroVisible && (
         <IntroSplash
+          t={t}
           onStart={() => {
             storage.markIntroShown();
             setIsIntroVisible(false);
@@ -337,12 +342,15 @@ export default function Home() {
         />
       )}
 
-      {/* Minimal Top Navigation */}
+      {/* Minimal Top Navigation with Language Switcher */}
       <Navigation
         currentView={currentView}
         onSelectView={setCurrentView}
         onOpenSearch={() => setIsSearchOpen(true)}
         onRandomTrip={triggerTakeMeSomewhere}
+        t={t}
+        currentLang={currentLang}
+        onSelectLang={handleSelectLang}
       />
 
       {/* Main Views */}
@@ -366,6 +374,7 @@ export default function Home() {
           onPlayStation={playStation}
           onToggleFavorite={handleToggleFavorite}
           isFavorite={checkIsFavorite}
+          t={t}
         />
       )}
 
@@ -376,6 +385,7 @@ export default function Home() {
           onPlayStation={playStation}
           onToggleFavorite={handleToggleFavorite}
           isFavorite={checkIsFavorite}
+          t={t}
         />
       )}
 
@@ -389,6 +399,7 @@ export default function Home() {
           onPlayStation={playStation}
           onToggleFavorite={handleToggleFavorite}
           onSelectCityByName={handleSelectCityByName}
+          t={t}
         />
       )}
 
@@ -401,6 +412,7 @@ export default function Home() {
           setSelectedCity(city);
           setCurrentView("explore");
         }}
+        t={t}
       />
 
       {/* Persistent Bottom Radio Player */}
@@ -419,6 +431,7 @@ export default function Home() {
         onToggleMute={handleToggleMute}
         onToggleFavorite={() => currentStation && handleToggleFavorite(currentStation)}
         onRetry={() => currentStation && playStation(currentStation)}
+        t={t}
       />
     </main>
   );

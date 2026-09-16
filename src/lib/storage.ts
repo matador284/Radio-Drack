@@ -5,6 +5,8 @@ const HISTORY_KEY = "radio_drack_history";
 const VISITED_CITIES_KEY = "radio_drack_visited_cities";
 const VOLUME_KEY = "radio_drack_volume";
 const INTRO_SHOWN_KEY = "radio_drack_intro_shown";
+const LANGUAGE_KEY = "radio_drack_language";
+
 
 export const storage = {
   getFavorites(): Station[] {
@@ -122,4 +124,27 @@ export const storage = {
       // ignore
     }
   },
+
+  getLanguage(): "pt" | "en" | "es" | "fr" | "ja" {
+    if (typeof window === "undefined") return "pt";
+    try {
+      const stored = localStorage.getItem(LANGUAGE_KEY);
+      if (stored === "pt" || stored === "en" || stored === "es" || stored === "fr" || stored === "ja") {
+        return stored;
+      }
+      return "pt";
+    } catch {
+      return "pt";
+    }
+  },
+
+  saveLanguage(lang: "pt" | "en" | "es" | "fr" | "ja") {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(LANGUAGE_KEY, lang);
+    } catch {
+      // ignore
+    }
+  },
 };
+

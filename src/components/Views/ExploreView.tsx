@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { City, Station } from "@/lib/types";
+import { TranslationDict } from "@/lib/translations";
 import { GlobeView } from "../Globe/GlobeView";
 import { GlobeOverlay } from "../Globe/GlobeOverlay";
 import { CityStationsDrawer } from "../Globe/CityStationsDrawer";
@@ -25,6 +26,7 @@ interface ExploreViewProps {
   onPlayStation: (station: Station) => void;
   onToggleFavorite: (station: Station) => void;
   isFavorite: (station: Station) => boolean;
+  t: TranslationDict;
 }
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
@@ -44,6 +46,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   onPlayStation,
   onToggleFavorite,
   isFavorite,
+  t,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -70,6 +73,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         filterMode={filterMode}
         onToggleFilterMode={onToggleFilterMode}
         onOpenStationList={() => setIsDrawerOpen(true)}
+        t={t}
       />
 
       {/* Spotlight Bar */}
@@ -78,6 +82,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         currentStation={currentStation}
         isPlaying={isPlaying}
         onPlayStation={onPlayStation}
+        t={t}
       />
 
       {/* City Stations Drawer */}
@@ -92,6 +97,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         onPlayStation={onPlayStation}
         onToggleFavorite={onToggleFavorite}
         isFavorite={isFavorite}
+        t={t}
       />
     </div>
   );

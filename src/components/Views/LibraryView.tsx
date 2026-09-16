@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Station, City } from "@/lib/types";
-import { Play, Pause, Heart, Radio, MapPin, Trash2, Clock, Bookmark, Sparkles } from "lucide-react";
+import { Station } from "@/lib/types";
+import { TranslationDict } from "@/lib/translations";
+import { Play, Pause, Heart, Radio, MapPin, Clock, Bookmark } from "lucide-react";
 
 interface LibraryViewProps {
   favorites: Station[];
@@ -13,6 +14,7 @@ interface LibraryViewProps {
   onPlayStation: (station: Station) => void;
   onToggleFavorite: (station: Station) => void;
   onSelectCityByName?: (cityName: string) => void;
+  t: TranslationDict;
 }
 
 export const LibraryView: React.FC<LibraryViewProps> = ({
@@ -24,6 +26,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onPlayStation,
   onToggleFavorite,
   onSelectCityByName,
+  t,
 }) => {
   const [activeTab, setActiveTab] = useState<"favorites" | "history" | "cities">("favorites");
 
@@ -33,13 +36,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       <div className="space-y-2 border-b border-white/[0.08] pb-6">
         <div className="flex items-center gap-2 text-[#e8c374] text-xs font-mono tracking-widest uppercase">
           <Bookmark className="w-3.5 h-3.5" />
-          <span>PERSONAL FREQUENCIES</span>
+          <span>{t.library.badge}</span>
         </div>
         <h1 className="text-4xl sm:text-6xl font-light text-white/95 font-serif tracking-tight">
-          Library.
+          {t.library.title}
         </h1>
         <p className="text-sm text-white/40 max-w-xl font-mono tracking-wide">
-          Your saved broadcasts, recent transmissions, and logged coordinates across the globe.
+          {t.library.desc}
         </p>
 
         {/* Tab Controls */}
@@ -53,7 +56,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             }`}
           >
             <Heart className="w-3.5 h-3.5 fill-current" />
-            <span>FAVORITES ({favorites.length})</span>
+            <span>
+              {t.library.favorites} ({favorites.length})
+            </span>
           </button>
 
           <button
@@ -65,7 +70,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>RECENTLY PLAYED ({history.length})</span>
+            <span>
+              {t.library.history} ({history.length})
+            </span>
           </button>
 
           <button
@@ -77,7 +84,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             }`}
           >
             <MapPin className="w-3.5 h-3.5" />
-            <span>CITIES VISITED ({visitedCities.length})</span>
+            <span>
+              {t.library.cities} ({visitedCities.length})
+            </span>
           </button>
         </div>
       </div>
@@ -88,9 +97,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           {favorites.length === 0 ? (
             <div className="py-24 text-center text-white/30 space-y-3">
               <Heart className="w-10 h-10 mx-auto text-white/10" />
-              <p className="text-sm font-mono uppercase tracking-widest">No saved stations yet</p>
+              <p className="text-sm font-mono uppercase tracking-widest">
+                {t.library.noFavorites}
+              </p>
               <p className="text-xs text-white/40 max-w-sm mx-auto">
-                Click the heart icon on any station while exploring the globe or discover shelves to store it here.
+                {t.library.noFavoritesDesc}
               </p>
             </div>
           ) : (
@@ -176,9 +187,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           {history.length === 0 ? (
             <div className="py-24 text-center text-white/30 space-y-3">
               <Clock className="w-10 h-10 mx-auto text-white/10" />
-              <p className="text-sm font-mono uppercase tracking-widest">Listening history is clear</p>
+              <p className="text-sm font-mono uppercase tracking-widest">
+                {t.library.noHistory}
+              </p>
               <p className="text-xs text-white/40 max-w-sm mx-auto">
-                Tune into any radio to start recording your personal transmission timeline.
+                {t.library.noHistoryDesc}
               </p>
             </div>
           ) : (
@@ -253,9 +266,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           {visitedCities.length === 0 ? (
             <div className="py-24 text-center text-white/30 space-y-3">
               <MapPin className="w-10 h-10 mx-auto text-white/10" />
-              <p className="text-sm font-mono uppercase tracking-widest">No cities visited yet</p>
+              <p className="text-sm font-mono uppercase tracking-widest">
+                {t.library.noCities}
+              </p>
               <p className="text-xs text-white/40 max-w-sm mx-auto">
-                Navigate the 3D globe to log travel destinations in your personal radio passport.
+                {t.library.noCitiesDesc}
               </p>
             </div>
           ) : (
@@ -268,12 +283,16 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 >
                   <div className="flex items-center justify-between text-white/30 group-hover:text-[#e8c374] transition-colors mb-2">
                     <MapPin className="w-4 h-4" />
-                    <span className="text-[10px] font-mono tracking-widest uppercase">VISITED</span>
+                    <span className="text-[10px] font-mono tracking-widest uppercase">
+                      {t.library.cities}
+                    </span>
                   </div>
                   <h4 className="text-base font-light text-white font-serif group-hover:text-[#f5d382] transition-colors">
                     {cityName}.
                   </h4>
-                  <p className="text-[11px] font-mono text-white/40 mt-1">Jump to on globe →</p>
+                  <p className="text-[11px] font-mono text-white/40 mt-1">
+                    {t.library.jumpToGlobe}
+                  </p>
                 </button>
               ))}
             </div>

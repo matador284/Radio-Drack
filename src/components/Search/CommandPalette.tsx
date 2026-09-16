@@ -2,15 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Station, City } from "@/lib/types";
+import { TranslationDict } from "@/lib/translations";
 import { radioApi } from "@/lib/api";
 import { WORLD_CITIES } from "@/lib/cities";
-import { Search, Radio, MapPin, Globe, Play, X, Loader2 } from "lucide-react";
+import { Search, Radio, MapPin, Play, X, Loader2 } from "lucide-react";
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   onPlayStation: (station: Station) => void;
   onSelectCity: (city: City) => void;
+  t: TranslationDict;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -18,6 +20,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onClose,
   onPlayStation,
   onSelectCity,
+  t,
 }) => {
   const [query, setQuery] = useState("");
   const [stations, setStations] = useState<Station[]>([]);
@@ -25,7 +28,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Auto-focus when opened
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -36,7 +38,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [isOpen]);
 
-  // Global key listener for Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -47,7 +48,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Debounced search
   useEffect(() => {
     if (!query.trim()) {
       setStations([]);
@@ -57,7 +57,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
 
     const clean = query.trim().toLowerCase();
-    // Match local cities immediately
     const foundCities = WORLD_CITIES.filter(
       (c) =>
         c.name.toLowerCase().includes(clean) ||
@@ -66,7 +65,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     ).slice(0, 5);
     setMatchedCities(foundCities);
 
-    // Fetch stations from API
     setIsLoading(true);
     const timer = setTimeout(async () => {
       try {
@@ -102,8 +100,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Find a frequency, station, city or country…"
-            aria-label="Search frequency, station, city or country"
+            placeholder={t.command.placeholder}
+            aria-label={t.command.placeholder}
             className="w-full bg-transparent text-white placeholder-white/30 text-sm focus:outline-none font-mono"
           />
           {isLoading && (
@@ -124,10 +122,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             <div className="py-12 text-center text-white/30 space-y-2">
               <Radio className="w-8 h-8 mx-auto text-white/20" />
               <p className="text-xs font-mono tracking-widest uppercase">
-                Type a city, country, or genre
+                {t.command.promptTitle}
               </p>
               <p className="text-[11px] text-white/20">
-                Examples: São Paulo, Paris, Tokyo, Jazz, Ambient, Electronic
+                {t.command.promptSubtitle}
               </p>
             </div>
           ) : (
@@ -136,7 +134,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               {matchedCities.length > 0 && (
                 <div className="space-y-1">
                   <div className="px-3 py-1 text-[10px] font-mono tracking-widest text-[#e8c374] uppercase">
-                    CITIES ({matchedCities.length})
+                    {t.command.cities} ({matchedCities.length})
                   </div>
                   {matchedCities.map((c) => (
                     <button
@@ -159,7 +157,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         </div>
                       </div>
                       <span className="text-[11px] font-mono text-white/30 group-hover:text-white/70">
-                        Fly on Globe →
+                        {t.command.flyGlobe}
                       </span>
                     </button>
                   ))}
@@ -170,7 +168,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               {stations.length > 0 && (
                 <div className="space-y-1">
                   <div className="px-3 py-1 text-[10px] font-mono tracking-widest text-sky-400 uppercase">
-                    STATIONS ({stations.length})
+                    {t.command.stations} ({stations.length})
                   </div>
                   {stations.map((st) => (
                     <button
@@ -222,7 +220,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
               {!isLoading && matchedCities.length === 0 && stations.length === 0 && (
                 <div className="py-8 text-center text-white/30 text-xs font-mono">
-                  No direct frequencies found for &quot;{query}&quot;.
+                  {t.command.noResults(query)}
                 </div>
               )}
             </>
@@ -232,10 +230,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         {/* Footer shortcuts */}
         <div className="px-4 py-2.5 bg-black/40 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-white/30">
           <div className="flex items-center gap-3">
-            <span>[ESC] to close</span>
-            <span>[ENTER] to select</span>
+            <span>{t.command.escClose}</span>
+            <span>{t.command.enterSelect}</span>
           </div>
-          <span>RADIO DRACK FREQUENCY REGISTRY</span>
+          <span>{t.command.registry}</span>
         </div>
       </div>
     </div>

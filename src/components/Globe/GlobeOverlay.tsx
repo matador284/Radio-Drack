@@ -2,7 +2,8 @@
 
 import React from "react";
 import { City } from "@/lib/types";
-import { Compass, Sparkles, Globe, MapPin } from "lucide-react";
+import { TranslationDict } from "@/lib/translations";
+import { Compass, Sparkles, MapPin } from "lucide-react";
 
 interface GlobeOverlayProps {
   selectedCity: City;
@@ -10,6 +11,7 @@ interface GlobeOverlayProps {
   filterMode: "LOCAL" | "WORLD";
   onToggleFilterMode: () => void;
   onOpenStationList: () => void;
+  t: TranslationDict;
 }
 
 export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
@@ -18,6 +20,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
   filterMode,
   onToggleFilterMode,
   onOpenStationList,
+  t,
 }) => {
   return (
     <div className="absolute top-24 left-6 sm:left-12 pointer-events-none z-20 max-w-sm sm:max-w-md">
@@ -26,7 +29,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono tracking-widest uppercase bg-[#e8c374]/10 text-[#e8c374] border border-[#e8c374]/20">
             <Compass className="w-3 h-3 animate-spin-slow" />
-            NEXT DESTINATION
+            {t.globe.nextDestination}
           </span>
           <span className="text-[10px] font-mono text-white/30 tracking-wider">
             {selectedCity.lat.toFixed(2)}°N, {selectedCity.lng.toFixed(2)}°E
@@ -53,10 +56,10 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
         {/* Station Count & Status */}
         <div className="flex items-center gap-3 pt-1">
           <span className="text-xs font-mono text-[#e8c374]/90 tracking-wider">
-            {selectedCity.stationCount || "80+"} STATIONS AVAILABLE
+            {selectedCity.stationCount || "80+"} {t.globe.stationsAvailable}
           </span>
           <span className="w-1 h-1 rounded-full bg-white/20" />
-          <span className="text-xs font-mono text-white/40 uppercase">LIVE FEED</span>
+          <span className="text-xs font-mono text-white/40 uppercase">{t.globe.liveFeed}</span>
         </div>
 
         {/* Action Buttons */}
@@ -66,7 +69,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
             className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium tracking-wide border border-white/15 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2"
           >
             <MapPin className="w-3.5 h-3.5 text-[#e8c374]" />
-            <span>Explore Stations</span>
+            <span>{t.globe.exploreStations}</span>
           </button>
 
           <button
@@ -74,11 +77,11 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
             className="px-4 py-2 rounded-lg bg-[#e8c374]/15 hover:bg-[#e8c374]/25 text-[#f5d382] text-xs font-medium tracking-wide border border-[#e8c374]/30 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2 group"
           >
             <Sparkles className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform duration-300" />
-            <span>Somewhere new</span>
+            <span>{t.globe.somewhereNew}</span>
           </button>
         </div>
 
-        {/* LOCAL / WORLD Toggle as required */}
+        {/* LOCAL / WORLD Toggle */}
         <div className="pt-2 pointer-events-auto">
           <div className="inline-flex items-center p-0.5 rounded-lg bg-black/40 border border-white/10 backdrop-blur-md">
             <button
@@ -89,7 +92,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
                   : "text-white/40 hover:text-white/80"
               }`}
             >
-              LOCAL
+              {t.globe.local}
             </button>
             <button
               onClick={() => filterMode !== "WORLD" && onToggleFilterMode()}
@@ -99,7 +102,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
                   : "text-white/40 hover:text-white/80"
               }`}
             >
-              WORLD
+              {t.globe.world}
             </button>
           </div>
         </div>
