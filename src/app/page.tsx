@@ -15,6 +15,9 @@ import { LibraryView } from "@/components/Views/LibraryView";
 import { RadioPlayer } from "@/components/Player/RadioPlayer";
 import { CommandPalette } from "@/components/Search/CommandPalette";
 import { IntroSplash } from "@/components/Intro/IntroSplash";
+import { SleepTimerModal } from "@/components/Player/SleepTimerModal";
+import { EqualizerModal } from "@/components/Player/EqualizerModal";
+import { audioEffects, EqualizerPreset } from "@/lib/audioEffects";
 
 export default function Home() {
   // Navigation, View & Language (Default: pt - Português Brasil)
@@ -45,6 +48,17 @@ export default function Home() {
   // Search & Modals
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isIntroVisible, setIsIntroVisible] = useState(false);
+  const [isSleepTimerOpen, setIsSleepTimerOpen] = useState(false);
+  const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
+  const [sleepTimerSecondsLeft, setSleepTimerSecondsLeft] = useState<number | null>(null);
+  const [isEqualizerOpen, setIsEqualizerOpen] = useState(false);
+  const [equalizerPreset, setEqualizerPreset] = useState<EqualizerPreset>("normal");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+
+  // Timers Refs
+  const sleepIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const recordIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Tuning Transition
   const [tuningMessage, setTuningMessage] = useState("");
@@ -53,6 +67,13 @@ export default function Home() {
 
   // Audio HTML Element Ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentStationRef = useRef<Station | null>(currentStation);
+  currentStationRef.current = currentStation;
+  const cityStationsRef = useRef<Station[]>(cityStations);
+  cityStationsRef.current = cityStations;
+  const spotlightStationsRef = useRef<Station[]>(spotlightStations);
+  spotlightStationsRef.current = spotlightStations;
+  const playStationRef = useRef<((st: Station) => void) | null>(null);
 
   // 1. Initial Storage Load (Language, History, Favorites)
   useEffect(() => {
@@ -86,10 +107,42 @@ export default function Home() {
       setAudioStatus("TUNING");
     };
 
+    const handleStreamFailover = () => {
+      const pool =
+        cityStationsRef.current.length > 0
+          ? cityStationsRef.current
+          : spotlightStationsRef.current;
+      if (!pool || pool.length <= 1) {
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+        setAudioStatus("SIGNAL_LOST");
+        return;
+      }
+      const cur = currentStationRef.current;
+      const currentIndex = pool.findIndex(
+        (s) => s.stationuuid === cur?.stationuuid || s.name === cur?.name
+      );
+      const nextIndex = (currentIndex + 1) % pool.length;
+      const nextStation = pool[nextIndex];
+
+      setTuningMessage(`Sinal instável. Sintonizando: ${nextStation.name}`);
+      setIsTuningVisible(true);
+      setTimeout(() => setIsTuningVisible(false), 3000);
+
+      playStationRef.current?.(nextStation);
+    };
+
     const onError = () => {
-      setIsPlaying(false);
-      setIsLoadingAudio(false);
-      setAudioStatus("SIGNAL_LOST");
+      const a = audioRef.current;
+      if (a && a.src && a.src.startsWith("http://")) {
+        // Try HTTPS auto-upgrade
+        const secureSrc = a.src.replace("http://", "https://");
+        a.src = secureSrc;
+        a.load();
+        a.play().catch(() => handleStreamFailover());
+        return;
+      }
+      handleStreamFailover();
     };
 
     audio.addEventListener("playing", onPlaying);
@@ -159,6 +212,9 @@ export default function Home() {
         audio.src = streamUrl;
         audio.load();
 
+        audioEffects.init(audio);
+        audioEffects.setPreset(equalizerPreset);
+
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise
@@ -179,8 +235,12 @@ export default function Home() {
         setAudioStatus("SIGNAL_LOST");
       }
     },
-    []
+    [equalizerPreset]
   );
+
+  useEffect(() => {
+    playStationRef.current = playStation;
+  }, [playStation]);
 
   // 5. Play / Pause toggle
   const togglePlay = () => {
@@ -319,7 +379,78 @@ export default function Home() {
     }
   };
 
-  // 10. TV Remote & Global Keyboard Navigation (Smart TVs, Mobile Keyboards, Desktop)
+  // 11. Sleep Timer Handler
+  const handleSetSleepTimer = (minutes: number | null) => {
+    setSleepTimerMinutes(minutes);
+    if (sleepIntervalRef.current) {
+      clearInterval(sleepIntervalRef.current);
+      sleepIntervalRef.current = null;
+    }
+    if (!minutes) {
+      setSleepTimerSecondsLeft(null);
+      return;
+    }
+    let remaining = minutes * 60;
+    setSleepTimerSecondsLeft(remaining);
+
+    sleepIntervalRef.current = setInterval(() => {
+      remaining -= 1;
+      setSleepTimerSecondsLeft(remaining);
+
+      // Smooth fade out in the last 5 seconds
+      if (remaining <= 5 && remaining > 0 && audioRef.current) {
+        audioRef.current.volume = Math.max(0, (volume * remaining) / 5);
+      }
+
+      if (remaining <= 0) {
+        if (sleepIntervalRef.current) clearInterval(sleepIntervalRef.current);
+        sleepIntervalRef.current = null;
+        setSleepTimerMinutes(null);
+        setSleepTimerSecondsLeft(null);
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.volume = volume;
+        }
+        setIsPlaying(false);
+        setAudioStatus("IDLE");
+      }
+    }, 1000);
+  };
+
+  // 12. Live Radio Recording Handler
+  const handleToggleRecord = () => {
+    if (isRecording) {
+      audioEffects.stopRecording(currentStation?.name || "Radio_Drack");
+      setIsRecording(false);
+      if (recordIntervalRef.current) {
+        clearInterval(recordIntervalRef.current);
+        recordIntervalRef.current = null;
+      }
+      setRecordSeconds(0);
+    } else {
+      if (!audioRef.current || !isPlaying) return;
+      audioEffects.init(audioRef.current);
+      const started = audioEffects.startRecording();
+      if (started) {
+        setIsRecording(true);
+        setRecordSeconds(0);
+        recordIntervalRef.current = setInterval(() => {
+          setRecordSeconds((prev) => prev + 1);
+        }, 1000);
+      }
+    }
+  };
+
+  // 13. Equalizer Preset Handler
+  const handleSelectPreset = (preset: EqualizerPreset) => {
+    setEqualizerPreset(preset);
+    if (audioRef.current) {
+      audioEffects.init(audioRef.current);
+      audioEffects.setPreset(preset);
+    }
+  };
+
+  // 14. TV Remote & Global Keyboard Navigation (Smart TVs, Mobile Keyboards, Desktop)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is currently typing in search input
@@ -513,7 +644,30 @@ export default function Home() {
         onToggleMute={handleToggleMute}
         onToggleFavorite={() => currentStation && handleToggleFavorite(currentStation)}
         onRetry={() => currentStation && playStation(currentStation)}
+        onOpenSleepTimer={() => setIsSleepTimerOpen(true)}
+        sleepTimerMinutes={sleepTimerMinutes}
+        onOpenEqualizer={() => setIsEqualizerOpen(true)}
+        currentPreset={equalizerPreset}
+        onToggleRecord={handleToggleRecord}
+        isRecording={isRecording}
+        recordSeconds={recordSeconds}
         t={t}
+      />
+
+      {/* Sleep Timer & Audio Equalizer Modals */}
+      <SleepTimerModal
+        isOpen={isSleepTimerOpen}
+        onClose={() => setIsSleepTimerOpen(false)}
+        timerMinutes={sleepTimerMinutes}
+        remainingSeconds={sleepTimerSecondsLeft}
+        onSetTimer={handleSetSleepTimer}
+      />
+
+      <EqualizerModal
+        isOpen={isEqualizerOpen}
+        onClose={() => setIsEqualizerOpen(false)}
+        currentPreset={equalizerPreset}
+        onSelectPreset={handleSelectPreset}
       />
     </main>
   );

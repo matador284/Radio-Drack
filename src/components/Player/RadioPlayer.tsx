@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Station } from "@/lib/types";
 import { TranslationDict } from "@/lib/translations";
 import { AudioVisualizer } from "./AudioVisualizer";
+import { EqualizerPreset } from "@/lib/audioEffects";
 import {
   Play,
   Pause,
@@ -17,6 +18,9 @@ import {
   RotateCcw,
   Check,
   AlertCircle,
+  Moon,
+  Sliders,
+  Disc,
 } from "lucide-react";
 
 interface RadioPlayerProps {
@@ -35,6 +39,14 @@ interface RadioPlayerProps {
   onToggleFavorite: () => void;
   onRetry: () => void;
   t: TranslationDict;
+  // New features
+  onOpenSleepTimer?: () => void;
+  sleepTimerMinutes?: number | null;
+  onOpenEqualizer?: () => void;
+  currentPreset?: EqualizerPreset;
+  onToggleRecord?: () => void;
+  isRecording?: boolean;
+  recordSeconds?: number;
 }
 
 export const RadioPlayer: React.FC<RadioPlayerProps> = ({
@@ -53,6 +65,13 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
   onToggleFavorite,
   onRetry,
   t,
+  onOpenSleepTimer,
+  sleepTimerMinutes,
+  onOpenEqualizer,
+  currentPreset = "normal",
+  onToggleRecord,
+  isRecording = false,
+  recordSeconds = 0,
 }) => {
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -196,8 +215,64 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Right: Volume, Favorite, Share, Fullscreen (Desktop/Tablet) */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-3 flex-shrink-0 md:w-1/3">
+        {/* Right: REC, EQ, Sleep Timer, Volume, Favorite, Share, Fullscreen */}
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 flex-shrink-0 md:w-1/3">
+          {/* Live Audio Recorder */}
+          {onToggleRecord && (
+            <button
+              onClick={onToggleRecord}
+              title={isRecording ? "Parar gravação e baixar áudio" : "Gravar transmissão ao vivo (REC)"}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-mono transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-400 ${
+                isRecording
+                  ? "bg-rose-600 text-white font-bold border-rose-400 shadow-[0_0_15px_rgba(225,29,72,0.6)] animate-pulse"
+                  : "bg-white/[0.03] border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${isRecording ? "bg-white animate-ping" : "bg-rose-500"}`} />
+              <span className="hidden xs:inline">
+                {isRecording
+                  ? `REC ${Math.floor(recordSeconds / 60)}:${(recordSeconds % 60).toString().padStart(2, "0")}`
+                  : "REC"}
+              </span>
+            </button>
+          )}
+
+          {/* Equalizer / Audio FX */}
+          {onOpenEqualizer && (
+            <button
+              onClick={onOpenEqualizer}
+              title="Equalizador & Efeitos de Som (Hi-Fi, Bass, Rádio Vintage)"
+              className={`p-2 rounded-lg border transition-all active:scale-90 relative focus-visible:ring-2 focus-visible:ring-[#e8c374] ${
+                currentPreset !== "normal"
+                  ? "bg-[#e8c374]/20 border-[#e8c374]/50 text-[#f5d382]"
+                  : "bg-white/[0.03] border-white/[0.06] text-white/40 hover:text-white hover:border-white/20"
+              }`}
+            >
+              <Sliders className="w-4 h-4" />
+              {currentPreset !== "normal" && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#e8c374] ring-2 ring-black" />
+              )}
+            </button>
+          )}
+
+          {/* Sleep Timer */}
+          {onOpenSleepTimer && (
+            <button
+              onClick={onOpenSleepTimer}
+              title="Modo Sono (Sleep Timer)"
+              className={`p-2 rounded-lg border transition-all active:scale-90 relative focus-visible:ring-2 focus-visible:ring-[#e8c374] ${
+                sleepTimerMinutes
+                  ? "bg-[#e8c374]/20 border-[#e8c374]/50 text-[#f5d382]"
+                  : "bg-white/[0.03] border-white/[0.06] text-white/40 hover:text-white hover:border-white/20"
+              }`}
+            >
+              <Moon className="w-4 h-4" />
+              {sleepTimerMinutes && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#e8c374] ring-2 ring-black" />
+              )}
+            </button>
+          )}
+
           {/* Favorite button (Always visible on mobile & desktop) */}
           <button
             onClick={onToggleFavorite}

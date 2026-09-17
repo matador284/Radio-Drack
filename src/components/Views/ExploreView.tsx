@@ -9,12 +9,12 @@ import { GlobeOverlay } from "../Globe/GlobeOverlay";
 import { CityStationsDrawer } from "../Globe/CityStationsDrawer";
 import { SpotlightBar } from "../Spotlight/SpotlightBar";
 import { TuningOverlay } from "../Globe/TuningOverlay";
+import { GenreFilterBar } from "../Globe/GenreFilterBar";
 
 const StreetMapView = dynamic(
   () => import("../Globe/StreetMapView").then((mod) => mod.StreetMapView),
   { ssr: false }
 );
-
 
 interface ExploreViewProps {
   cities: City[];
@@ -57,6 +57,23 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isGpsMode, setIsGpsMode] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+
+  // Filter or prioritize stations matching the selected genre
+  const displayedStations = React.useMemo(() => {
+    if (!selectedGenre) return stations;
+    const matches = stations.filter(
+      (s) =>
+        s.tags?.toLowerCase().includes(selectedGenre.toLowerCase()) ||
+        s.name?.toLowerCase().includes(selectedGenre.toLowerCase())
+    );
+    const nonMatches = stations.filter(
+      (s) =>
+        !s.tags?.toLowerCase().includes(selectedGenre.toLowerCase()) &&
+        !s.name?.toLowerCase().includes(selectedGenre.toLowerCase())
+    );
+    return [...matches, ...nonMatches];
+  }, [stations, selectedGenre]);
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#050608]">
@@ -64,7 +81,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       {isGpsMode ? (
         <StreetMapView
           city={selectedCity}
-          stations={stations}
+          stations={displayedStations}
           currentStation={currentStation}
           isPlaying={isPlaying}
           onPlayStation={onPlayStation}
@@ -73,6 +90,15 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         />
       ) : (
         <>
+          {/* Quick Genre Discovery Bar */}
+          <GenreFilterBar
+            selectedGenre={selectedGenre}
+            onSelectGenre={(g) => {
+              setSelectedGenre(g);
+              if (g) setIsDrawerOpen(true);
+            }}
+          />
+
           {/* NASA Photorealistic 3D Globe */}
           <GlobeView
             cities={cities}
@@ -125,7 +151,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       {/* City Stations Drawer (Accessible in both Globe and Street mode) */}
       <CityStationsDrawer
         city={selectedCity}
-        stations={stations}
+        stations={displayedStations}
         isLoading={isLoadingStations}
         isOpen={isDrawerOpen}
         currentStation={currentStation}

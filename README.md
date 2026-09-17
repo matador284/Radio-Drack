@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 📻 Radio Drack
 ### World Radio Explorer — Globo 3D Interativo com Modo GPS de Ruas
@@ -25,7 +25,12 @@ Dê zoom e mergulhe nas ruas de qualquer cidade com o modo GPS Leaflet — com n
 |---|---|
 | 🌍 **Globo 3D NASA** | Terra fotorrealística com nuvens, atmosfera Rayleigh, estrelas e beacons pulsantes por cidade |
 | 🗺️ **Modo GPS de Ruas** | Mapa Leaflet com nomes de ruas, bairros, avenidas e marcadores de rádio interativos — modo escuro CARTO |
-| 📻 **+650 Rádios Brasileiras** | Curadas por estado: SP, RJ, MG, BA, DF, RS, PR, PE, CE, **GO**, AM, SC |
+| 🔴 **Gravador de Áudio ao Vivo (REC)** | Grave qualquer transmissão ao vivo diretamente no navegador com 1 clique e download automático em WebM |
+| 🌙 **Modo Sono (Sleep Timer)** | Temporizador (15m, 30m, 45m, 60m) com fade-out suave nos últimos 5 segundos antes de desligar |
+| 🎚️ **Equalizador & Filtro Vintage AM** | Web Audio API 3 bandas: Flat/Normal, Super Bass, Rádio Vintage AM anos 70 e Voz/Notícias |
+| 🏷️ **Filtro Rápido de Gêneros** | Pílulas flutuantes para busca rápida: Sertanejo, Rock, Pop, MPB, Notícias, Eletrônica, Jazz, Gospel e Anos 80 |
+| 📻 **Streams 100% Verificados** | Varredura ativa de streams HTTPS no Brasil e Goiás (Goiânia, Rio, SP, BH, Brasília, POA, etc.) |
+| 📺 **Suporte Smart TV & Mobile** | Navegação por controle remoto (D-Pad), atalhos de teclado (Espaço, N, P, M, Ctrl+K) e layout ultra-responsivo |
 | 🌐 **Radio Browser API** | Acesso a +30.000 estações globais com failover automático entre 3 servidores espelho |
 | 🎧 **Player Persistente** | Player de áudio com visualizador, controle de volume, mute, próxima/anterior estação |
 | 🔍 **Busca Global** | Command Palette (Ctrl+K / Cmd+K) com busca por cidade, país ou gênero musical |
@@ -52,12 +57,15 @@ Dê zoom e mergulhe nas ruas de qualquer cidade com o modo GPS Leaflet — com n
 - Clique no marcador → popup com info + botão **SINTONIZAR AGORA**
 - Botão **↩ Voltar ao Globo** no canto superior
 
-### Player de Rádio
-- **▶/⏸** → play/pause
-- **⏮/⏭** → estação anterior/próxima da cidade atual
-- **🔊** → slider de volume + botão mute
-- **♡** → salvar como favorito
-- Status: `SINTONIZANDO...` / `NO AR` / `SINAL PERDIDO`
+### Player de Rádio & Efeitos
+- **▶ / ⏸** → Reproduzir / Pausar (ou barra de `Espaço`)
+- **🔴 REC** → Iniciar / Parar gravação do áudio ao vivo (download automático `.webm`)
+- **🌙 Modo Sono** → Timer para adormecer (15m, 30m, 45m, 60m) com fade-out gradual
+- **🎚️ Equalizador** → Alternar presets: Flat/Normal, Super Bass, Vintage AM anos 70, Notícias/Voz
+- **⏮ / ⏭** → Estação anterior / próxima (ou teclas `P` / `N`)
+- **🔊** → Slider de volume + botão mute (ou tecla `M`)
+- **♡** → Salvar nos favoritos
+- Status inteligente: `SINTONIZANDO...` / `NO AR` / `SINAL INSTÁVEL` (com auto-failover)
 
 ### Command Palette (Ctrl+K / Cmd+K)
 - Busca por nome de cidade, país ou gênero
