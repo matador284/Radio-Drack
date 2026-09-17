@@ -15,40 +15,13 @@ class AudioEffectsManager {
   public isRecording = false;
   public currentPreset: EqualizerPreset = "normal";
 
-  // Initialize Web Audio graph
+  // Initialize Web Audio graph (safely without hijacking native HTML5 audio output)
   public init(audio: HTMLAudioElement) {
-    if (this.audioElement === audio && this.ctx) return;
     this.audioElement = audio;
-
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-
-      this.ctx = new AudioCtx();
-      this.source = this.ctx.createMediaElementSource(audio);
-
-      // 3-Band Parametric Filter Node Chain
-      this.lowFilter = this.ctx.createBiquadFilter();
-      this.lowFilter.type = "lowshelf";
-      this.lowFilter.frequency.value = 250;
-
-      this.midFilter = this.ctx.createBiquadFilter();
-      this.midFilter.type = "peaking";
-      this.midFilter.frequency.value = 1500;
-      this.midFilter.Q.value = 1.0;
-
-      this.highFilter = this.ctx.createBiquadFilter();
-      this.highFilter.type = "highshelf";
-      this.highFilter.frequency.value = 4000;
-
-      // Connect source -> low -> mid -> high -> destination
-      this.source.connect(this.lowFilter);
-      this.lowFilter.connect(this.midFilter);
-      this.midFilter.connect(this.highFilter);
-      this.highFilter.connect(this.ctx.destination);
-    } catch {
-      // AudioContext might already be connected or restricted by CORS
-    }
+    // We intentionally do NOT call ctx.createMediaElementSource(audio)
+    // because internet radio streams from third-party servers lack CORS headers,
+    // which causes the browser's Web Audio API to output total silence (zeroes).
+    // Native HTML5 <audio> handles cross-origin streams cleanly and plays full sound.
   }
 
   // Apply sound preset

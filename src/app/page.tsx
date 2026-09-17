@@ -18,6 +18,7 @@ import { IntroSplash } from "@/components/Intro/IntroSplash";
 import { SleepTimerModal } from "@/components/Player/SleepTimerModal";
 import { EqualizerModal } from "@/components/Player/EqualizerModal";
 import { audioEffects, EqualizerPreset } from "@/lib/audioEffects";
+import Hls from "hls.js";
 
 export default function Home() {
   // Navigation, View & Language (Default: pt - Português Brasil)
@@ -65,8 +66,14 @@ export default function Home() {
   const [isTuningVisible, setIsTuningVisible] = useState(false);
   const [filterMode, setFilterMode] = useState<"LOCAL" | "WORLD">("LOCAL");
 
-  // Audio HTML Element Ref
+  // Audio HTML Element Ref & HLS Engine
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const volumeRef = useRef<number>(volume);
+  volumeRef.current = volume;
+  const isMutedRef = useRef<boolean>(isMuted);
+  isMutedRef.current = isMuted;
+
   const currentStationRef = useRef<Station | null>(currentStation);
   currentStationRef.current = currentStation;
   const cityStationsRef = useRef<Station[]>(cityStations);
@@ -148,13 +155,15 @@ export default function Home() {
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("waiting", onWaiting);
     audio.addEventListener("error", onError);
-    audio.addEventListener("stalled", onError);
 
     return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("waiting", onWaiting);
       audio.removeEventListener("error", onError);
-      audio.removeEventListener("stalled", onError);
       audio.pause();
       audio.src = "";
     };
@@ -188,32 +197,72 @@ export default function Home() {
   }, [selectedCity, loadStationsForCity]);
 
   // 4. Play station stream
-  const playStation = useCallback(
-    (station: Station) => {
-      const audio = audioRef.current;
-      if (!audio) return;
+  const playStation = useCallback((station: Station) => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-      const streamUrl = station.url_resolved || station.url;
-      if (!streamUrl) {
-        setAudioStatus("SIGNAL_LOST");
-        return;
+    const streamUrl = station.url_resolved || station.url;
+    if (!streamUrl) {
+      setAudioStatus("SIGNAL_LOST");
+      return;
+    }
+
+    setCurrentStation(station);
+    setIsLoadingAudio(true);
+    setAudioStatus("TUNING");
+
+    // Record to history
+    const updatedHistory = storage.addToHistory(station);
+    setHistory(updatedHistory);
+
+    try {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
 
-      setCurrentStation(station);
-      setIsLoadingAudio(true);
-      setAudioStatus("TUNING");
+      audio.pause();
+      audio.muted = isMutedRef.current;
+      audio.volume = isMutedRef.current ? 0 : (volumeRef.current || 0.8);
 
-      // Record to history
-      const updatedHistory = storage.addToHistory(station);
-      setHistory(updatedHistory);
+      const isHls = streamUrl.includes(".m3u8") || station.hls === 1;
 
-      try {
-        audio.pause();
+      if (
+        isHls &&
+        typeof window !== "undefined" &&
+        !audio.canPlayType("application/vnd.apple.mpegurl") &&
+        Hls.isSupported()
+      ) {
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        hlsRef.current = hls;
+        hls.loadSource(streamUrl);
+        hls.attachMedia(audio);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          audio
+            .play()
+            .then(() => {
+              setIsPlaying(true);
+              setIsLoadingAudio(false);
+              setAudioStatus("TUNED_IN");
+            })
+            .catch(() => {
+              setIsPlaying(false);
+              setIsLoadingAudio(false);
+              setAudioStatus("SIGNAL_LOST");
+            });
+        });
+        hls.on(Hls.Events.ERROR, (_, data) => {
+          if (data.fatal) {
+            hls.destroy();
+            hlsRef.current = null;
+            setIsPlaying(false);
+            setIsLoadingAudio(false);
+            setAudioStatus("SIGNAL_LOST");
+          }
+        });
+      } else {
         audio.src = streamUrl;
         audio.load();
-
-        audioEffects.init(audio);
-        audioEffects.setPreset(equalizerPreset);
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
@@ -229,14 +278,13 @@ export default function Home() {
               setAudioStatus("SIGNAL_LOST");
             });
         }
-      } catch {
-        setIsPlaying(false);
-        setIsLoadingAudio(false);
-        setAudioStatus("SIGNAL_LOST");
       }
-    },
-    [equalizerPreset]
-  );
+    } catch {
+      setIsPlaying(false);
+      setIsLoadingAudio(false);
+      setAudioStatus("SIGNAL_LOST");
+    }
+  }, []);
 
   useEffect(() => {
     playStationRef.current = playStation;
@@ -256,6 +304,8 @@ export default function Home() {
         playStation(currentStation);
       } else {
         setIsLoadingAudio(true);
+        audio.muted = isMutedRef.current;
+        audio.volume = isMutedRef.current ? 0 : (volumeRef.current || 0.8);
         audio
           .play()
           .then(() => {
@@ -266,7 +316,7 @@ export default function Home() {
           .catch(() => {
             setIsPlaying(false);
             setIsLoadingAudio(false);
-            setAudioStatus("SIGNAL_LOST");
+            playStation(currentStation);
           });
       }
     }
