@@ -11,6 +11,7 @@ interface GlobeOverlayProps {
   filterMode: "LOCAL" | "WORLD";
   onToggleFilterMode: () => void;
   onOpenStationList: () => void;
+  onOpenStreetMap?: () => void;
   t: TranslationDict;
 }
 
@@ -20,6 +21,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
   filterMode,
   onToggleFilterMode,
   onOpenStationList,
+  onOpenStreetMap,
   t,
 }) => {
   return (
@@ -28,7 +30,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
         {/* Next destination header */}
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono tracking-widest uppercase bg-[#e8c374]/10 text-[#e8c374] border border-[#e8c374]/20">
-            <Compass className="w-3 h-3 animate-spin-slow" />
+            <Compass className="w-3.5 h-3.5 animate-spin-slow" />
             {t.globe.nextDestination}
           </span>
           <span className="text-[10px] font-mono text-white/30 tracking-wider">
@@ -36,7 +38,7 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
           </span>
         </div>
 
-        {/* Big Editorial City Name with the period as required in the design spec */}
+        {/* Big Editorial City Name with the period */}
         <div>
           <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-white/95 font-serif drop-shadow-2xl">
             {selectedCity.name}.
@@ -63,18 +65,29 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 pt-2 pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-2.5 pt-2 pointer-events-auto">
           <button
             onClick={onOpenStationList}
-            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium tracking-wide border border-white/15 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2"
+            className="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium tracking-wide border border-white/15 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2"
           >
             <MapPin className="w-3.5 h-3.5 text-[#e8c374]" />
             <span>{t.globe.exploreStations}</span>
           </button>
 
+          {onOpenStreetMap && (
+            <button
+              onClick={onOpenStreetMap}
+              className="px-3.5 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-medium tracking-wide border border-emerald-500/30 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2"
+              title="Aproximar nível GPS com nomes de ruas e avenidas"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Ver Ruas (GPS)</span>
+            </button>
+          )}
+
           <button
             onClick={onRandomCity}
-            className="px-4 py-2 rounded-lg bg-[#e8c374]/15 hover:bg-[#e8c374]/25 text-[#f5d382] text-xs font-medium tracking-wide border border-[#e8c374]/30 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2 group"
+            className="px-3.5 py-2 rounded-lg bg-[#e8c374]/15 hover:bg-[#e8c374]/25 text-[#f5d382] text-xs font-medium tracking-wide border border-[#e8c374]/30 backdrop-blur-md transition-all active:scale-95 shadow-lg flex items-center gap-2 group"
           >
             <Sparkles className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform duration-300" />
             <span>{t.globe.somewhereNew}</span>

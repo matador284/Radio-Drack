@@ -3,11 +3,18 @@
 import React, { useState } from "react";
 import { City, Station } from "@/lib/types";
 import { TranslationDict } from "@/lib/translations";
+import dynamic from "next/dynamic";
 import { GlobeView } from "../Globe/GlobeView";
 import { GlobeOverlay } from "../Globe/GlobeOverlay";
 import { CityStationsDrawer } from "../Globe/CityStationsDrawer";
 import { SpotlightBar } from "../Spotlight/SpotlightBar";
 import { TuningOverlay } from "../Globe/TuningOverlay";
+
+const StreetMapView = dynamic(
+  () => import("../Globe/StreetMapView").then((mod) => mod.StreetMapView),
+  { ssr: false }
+);
+
 
 interface ExploreViewProps {
   cities: City[];
@@ -49,43 +56,63 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   t,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isGpsMode, setIsGpsMode] = useState(false);
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#050608]">
-      {/* 3D Celestial Three.js Globe */}
-      <GlobeView
-        cities={cities}
-        selectedCity={selectedCity}
-        onSelectCity={(city) => {
-          onSelectCity(city);
-          setIsDrawerOpen(true);
-        }}
-        isPlaying={isPlaying}
-      />
+      {/* View Switch: NASA 3D Earth OR GPS Street-Level Map */}
+      {isGpsMode ? (
+        <StreetMapView
+          city={selectedCity}
+          stations={stations}
+          currentStation={currentStation}
+          isPlaying={isPlaying}
+          onPlayStation={onPlayStation}
+          onReturnToGlobe={() => setIsGpsMode(false)}
+          t={t}
+        />
+      ) : (
+        <>
+          {/* NASA Photorealistic 3D Globe */}
+          <GlobeView
+            cities={cities}
+            selectedCity={selectedCity}
+            onSelectCity={(city) => {
+              onSelectCity(city);
+              setIsDrawerOpen(true);
+            }}
+            onZoomIntoCity={() => {
+              setIsGpsMode(true);
+            }}
+            isPlaying={isPlaying}
+          />
 
-      {/* Dynamic Flight / Tuning Status Message */}
-      <TuningOverlay message={tuningMessage} isVisible={isTuningVisible} />
+          {/* Dynamic Flight / Tuning Status Message */}
+          <TuningOverlay message={tuningMessage} isVisible={isTuningVisible} />
 
-      {/* Floating HUD: Next Destination */}
-      <GlobeOverlay
-        selectedCity={selectedCity}
-        onRandomCity={onRandomCity}
-        filterMode={filterMode}
-        onToggleFilterMode={onToggleFilterMode}
-        onOpenStationList={() => setIsDrawerOpen(true)}
-        t={t}
-      />
+          {/* Floating HUD: Next Destination with GPS button */}
+          <GlobeOverlay
+            selectedCity={selectedCity}
+            onRandomCity={onRandomCity}
+            filterMode={filterMode}
+            onToggleFilterMode={onToggleFilterMode}
+            onOpenStationList={() => setIsDrawerOpen(true)}
+            onOpenStreetMap={() => setIsGpsMode(true)}
+            t={t}
+          />
 
-      {/* Spotlight Bar */}
-      <SpotlightBar
-        stations={spotlightStations}
-        currentStation={currentStation}
-        isPlaying={isPlaying}
-        onPlayStation={onPlayStation}
-        t={t}
-      />
+          {/* Spotlight Bar */}
+          <SpotlightBar
+            stations={spotlightStations}
+            currentStation={currentStation}
+            isPlaying={isPlaying}
+            onPlayStation={onPlayStation}
+            t={t}
+          />
+        </>
+      )}
 
-      {/* City Stations Drawer */}
+      {/* City Stations Drawer (Accessible in both Globe and Street mode) */}
       <CityStationsDrawer
         city={selectedCity}
         stations={stations}
