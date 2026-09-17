@@ -91,11 +91,11 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
   const locationText = [station.state || station.name, station.country].filter(Boolean).join(" · ");
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#07080c]/92 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-10px_40px_rgba(0,0,0,0.7)] px-4 sm:px-8 py-3.5 transition-all duration-300">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6">
-        {/* Station Info */}
-        <div className="flex items-center gap-3.5 w-full md:w-1/3 min-w-0">
-          <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-white/[0.04] border border-white/[0.08] flex-shrink-0 flex items-center justify-center shadow-inner group">
+    <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#07080c]/95 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-10px_40px_rgba(0,0,0,0.8)] px-3 sm:px-6 md:px-8 py-2.5 sm:py-3.5 transition-all duration-300">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+        {/* Left: Station Info (Mobile & Desktop) */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 md:w-1/3 md:flex-initial">
+          <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-hidden bg-white/[0.04] border border-white/[0.08] flex-shrink-0 flex items-center justify-center shadow-inner group">
             {station.favicon && !imgError ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -105,7 +105,7 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
                 onError={() => setImgError(true)}
               />
             ) : (
-              <Radio className="w-5 h-5 text-[#e8c374]/80" />
+              <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-[#e8c374]/80" />
             )}
             {isPlaying && (
               <span className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-black animate-pulse" />
@@ -113,51 +113,45 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-medium text-white/95 truncate tracking-tight">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h4 className="text-xs sm:text-sm font-medium text-white/95 truncate tracking-tight">
                 {station.name}
               </h4>
               {status === "TUNED_IN" && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                   {t.player.live}
                 </span>
               )}
               {status === "TUNING" && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest bg-sky-500/10 text-sky-400 border border-sky-500/20 animate-pulse">
+                <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold tracking-widest bg-sky-500/10 text-sky-400 border border-sky-500/20 animate-pulse flex-shrink-0">
                   {t.player.tuning}
                 </span>
               )}
-              {status === "SIGNAL_LOST" && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
-                  <AlertCircle className="w-2.5 h-2.5" />
-                  {t.player.signalLost}
-                </span>
-              )}
             </div>
-            <p className="text-xs text-white/40 truncate tracking-wide mt-0.5">
+            <p className="text-[10px] sm:text-xs text-white/40 truncate tracking-wide">
               {locationText || station.tags || "World Stream"}
             </p>
           </div>
         </div>
 
-        {/* Center Controls & Audio Visualizer */}
-        <div className="flex flex-col items-center gap-2 w-full md:w-1/3">
-          <div className="flex items-center gap-4 sm:gap-6">
+        {/* Center: Playback Controls & Visualizer */}
+        <div className="flex items-center gap-2 sm:gap-4 md:flex-col md:gap-1.5 flex-shrink-0 md:w-1/3 md:items-center">
+          <div className="flex items-center gap-1.5 sm:gap-4">
             <button
               onClick={onPrevious}
               aria-label={t.player.previous}
-              className="text-white/50 hover:text-white/90 active:scale-95 transition-all p-1"
+              className="text-white/50 hover:text-white active:scale-95 transition-all p-1.5 rounded-lg focus-visible:ring-2 focus-visible:ring-[#e8c374]"
               title={t.player.previous}
             >
-              <SkipBack className="w-4 h-4" />
+              <SkipBack className="w-4 h-4 sm:w-4 sm:h-4" />
             </button>
 
             {status === "SIGNAL_LOST" ? (
               <button
                 onClick={onRetry}
                 aria-label={t.player.tryAgain}
-                className="w-10 h-10 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 flex items-center justify-center transition-all active:scale-95 group"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 flex items-center justify-center transition-all active:scale-95 group focus-visible:ring-2 focus-visible:ring-[#e8c374]"
                 title={t.player.tryAgain}
               >
                 <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
@@ -166,7 +160,7 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
               <button
                 onClick={onTogglePlay}
                 aria-label={isPlaying ? "Pause" : "Play"}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 relative ${
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all active:scale-90 relative focus-visible:ring-2 focus-visible:ring-white ${
                   isPlaying
                     ? "bg-[#e8c374] text-black shadow-[0_0_20px_rgba(232,195,116,0.4)] hover:bg-[#f5d382]"
                     : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
@@ -185,16 +179,16 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
             <button
               onClick={onNext}
               aria-label={t.player.next}
-              className="text-white/50 hover:text-white/90 active:scale-95 transition-all p-1"
+              className="text-white/50 hover:text-white active:scale-95 transition-all p-1.5 rounded-lg focus-visible:ring-2 focus-visible:ring-[#e8c374]"
               title={t.player.next}
             >
-              <SkipForward className="w-4 h-4" />
+              <SkipForward className="w-4 h-4 sm:w-4 sm:h-4" />
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <AudioVisualizer isPlaying={isPlaying} isLoading={isLoading} />
-            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-white/30 tracking-wider">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/30 tracking-wider">
               <span>{codecText}</span>
               <span>·</span>
               <span>{bitrateText}</span>
@@ -202,13 +196,27 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Right Actions: Volume, Favorite, Share */}
-        <div className="flex items-center justify-end gap-3 sm:gap-4 w-full md:w-1/3">
-          {/* Volume Control */}
-          <div className="flex items-center gap-2">
+        {/* Right: Volume, Favorite, Share, Fullscreen (Desktop/Tablet) */}
+        <div className="flex items-center justify-end gap-1.5 sm:gap-3 flex-shrink-0 md:w-1/3">
+          {/* Favorite button (Always visible on mobile & desktop) */}
+          <button
+            onClick={onToggleFavorite}
+            aria-label={t.player.favorite}
+            className={`p-1.5 sm:p-2 rounded-lg border transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-[#e8c374] ${
+              isFavorite
+                ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                : "bg-white/[0.03] border-white/[0.06] text-white/40 hover:text-white hover:border-white/20"
+            }`}
+            title={t.player.favorite}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+          </button>
+
+          {/* Volume Control (Tablet & Desktop) */}
+          <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={onToggleMute}
-              className="text-white/40 hover:text-white/90 transition-colors p-1"
+              className="text-white/40 hover:text-white transition-colors p-1 rounded-md focus-visible:ring-2 focus-visible:ring-[#e8c374]"
               title={isMuted ? t.player.unmute : t.player.mute}
             >
               {isMuted || volume === 0 ? (
@@ -229,25 +237,11 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
             />
           </div>
 
-          {/* Favorite */}
-          <button
-            onClick={onToggleFavorite}
-            aria-label={t.player.favorite}
-            className={`p-2 rounded-lg border transition-all active:scale-90 ${
-              isFavorite
-                ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
-                : "bg-white/[0.03] border-white/[0.06] text-white/40 hover:text-white hover:border-white/20"
-            }`}
-            title={t.player.favorite}
-          >
-            <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
-          </button>
-
-          {/* Share */}
+          {/* Share button */}
           <button
             onClick={handleShare}
             aria-label={t.player.share}
-            className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-white hover:border-white/20 transition-all active:scale-90 relative"
+            className="hidden sm:flex p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-white hover:border-white/20 transition-all active:scale-90 relative focus-visible:ring-2 focus-visible:ring-[#e8c374]"
             title={t.player.share}
           >
             {copied ? (
@@ -260,6 +254,32 @@ export const RadioPlayer: React.FC<RadioPlayerProps> = ({
                 {t.player.copied}
               </span>
             )}
+          </button>
+
+          {/* TV / Fullscreen toggle button */}
+          <button
+            onClick={() => {
+              if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+              } else {
+                document.exitFullscreen?.().catch(() => {});
+              }
+            }}
+            aria-label="Alternar Tela Cheia / Modo TV"
+            className="hidden lg:flex p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-white hover:border-white/20 transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-[#e8c374]"
+            title="Tela cheia / Modo TV (Atalho: F)"
+          >
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+            </svg>
           </button>
         </div>
       </div>

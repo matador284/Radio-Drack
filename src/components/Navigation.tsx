@@ -59,7 +59,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <nav className="hidden sm:flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
             <button
               onClick={() => onSelectView("explore")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#e8c374] focus-visible:outline-none ${
                 currentView === "explore"
                   ? "bg-white/10 text-white font-medium shadow-sm"
                   : "text-white/45 hover:text-white"
@@ -71,7 +71,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             <button
               onClick={() => onSelectView("discover")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#e8c374] focus-visible:outline-none ${
                 currentView === "discover"
                   ? "bg-white/10 text-white font-medium shadow-sm"
                   : "text-white/45 hover:text-white"
@@ -83,7 +83,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             <button
               onClick={() => onSelectView("library")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#e8c374] focus-visible:outline-none ${
                 currentView === "library"
                   ? "bg-white/10 text-white font-medium shadow-sm"
                   : "text-white/45 hover:text-white"

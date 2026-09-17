@@ -68,127 +68,35 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
 
     const GLOBE_RADIUS = 100;
 
-    // --- PROCEDURAL HIGH-RES NASA EARTH TEXTURE ---
-    // Generates high-res equirectangular landmasses, topography, oceans, and city night lights
-    const textureCanvas = document.createElement("canvas");
-    textureCanvas.width = 2048;
-    textureCanvas.height = 1024;
-    const ctx = textureCanvas.getContext("2d")!;
+    // --- PHOTOREALISTIC NASA / GOOGLE EARTH TEXTURES ---
+    const textureLoader = new THREE.TextureLoader();
+    
+    // 1. High-Res NASA Blue Marble Day & Specular Textures
+    const earthMap = textureLoader.load("/textures/earth_atmos_2048.jpg");
+    earthMap.colorSpace = THREE.SRGBColorSpace;
 
-    // 1. Deep NASA Blue Ocean Base with gradients
-    const oceanGrad = ctx.createLinearGradient(0, 0, 0, 1024);
-    oceanGrad.addColorStop(0, "#081326");
-    oceanGrad.addColorStop(0.2, "#0b2046");
-    oceanGrad.addColorStop(0.5, "#0c2854");
-    oceanGrad.addColorStop(0.8, "#0b2046");
-    oceanGrad.addColorStop(1, "#081326");
-    ctx.fillStyle = oceanGrad;
-    ctx.fillRect(0, 0, 2048, 1024);
+    const earthSpecular = textureLoader.load("/textures/earth_specular_2048.jpg");
 
-    // 2. Continents and terrain simulation (NASA Blue Marble style)
-    const project = (lat: number, lng: number) => {
-      const x = ((lng + 180) / 360) * 2048;
-      const y = ((90 - lat) / 180) * 1024;
-      return [x, y];
-    };
-
-    // Draw continental landmass shapes
-    const drawLandBlob = (lat: number, lng: number, rx: number, ry: number, color: string) => {
-      const [cx, cy] = project(lat, lng);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-      ctx.fill();
-    };
-
-    // South America (Brazil, Argentina, Andes)
-    drawLandBlob(-14, -54, 180, 240, "#194328"); // Amazon forest lush green
-    drawLandBlob(-23, -48, 140, 180, "#235532"); // Southeast Brazil
-    drawLandBlob(-38, -64, 90, 160, "#3e522d"); // Pampas / Patagonia
-    drawLandBlob(-10, -75, 40, 180, "#4a4c33"); // Andes mountain ridge
-
-    // North America
-    drawLandBlob(40, -100, 240, 190, "#2c4c28"); // US Great Plains & Midwest
-    drawLandBlob(55, -105, 260, 170, "#1f3b20"); // Canada Boreal
-    drawLandBlob(35, -118, 90, 140, "#5a5035"); // Western Desert & California
-    drawLandBlob(22, -100, 90, 110, "#414629"); // Mexico
-    drawLandBlob(72, -40, 140, 120, "#e2e8f0"); // Greenland Ice cap
-
-    // Europe
-    drawLandBlob(50, 15, 160, 110, "#2d5228"); // Central Europe
-    drawLandBlob(42, -3, 80, 70, "#484d2f"); // Iberian Peninsula
-    drawLandBlob(62, 18, 110, 120, "#1e3b21"); // Scandinavia
-    drawLandBlob(54, -3, 50, 60, "#2d562b"); // UK & Ireland
-
-    // Africa
-    drawLandBlob(24, 18, 200, 110, "#735c3b"); // Sahara desert sand
-    drawLandBlob(0, 22, 180, 150, "#1e4d29"); // Congo rainforest
-    drawLandBlob(-24, 25, 140, 140, "#4d522c"); // Southern Africa Savanna
-
-    // Asia & Russia
-    drawLandBlob(60, 90, 420, 190, "#234124"); // Siberia Taiga
-    drawLandBlob(35, 105, 220, 160, "#3a562d"); // East Asia / China
-    drawLandBlob(22, 79, 130, 130, "#3f542e"); // India
-    drawLandBlob(25, 45, 110, 110, "#6e5737"); // Arabian Peninsula
-    drawLandBlob(36, 138, 45, 100, "#274826"); // Japan archipelago
-
-    // Oceania
-    drawLandBlob(-25, 134, 180, 140, "#6c5132"); // Outback Australia
-    drawLandBlob(-33, 148, 80, 90, "#2c4e28"); // East Coast Australia
-    drawLandBlob(-42, 172, 35, 60, "#234c26"); // New Zealand
-
-    // 3. NASA City Night Lights (golden urban glow speckles across continents)
-    ctx.fillStyle = "#ffdf79";
-    for (let i = 0; i < 2400; i++) {
-      // Clustered near populated coasts & rivers
-      const [x, y] = [Math.random() * 2048, Math.random() * 1024];
-      const p = ctx.getImageData(x, y, 1, 1).data;
-      // If on land (not dark ocean)
-      if (p[1] > 35 && p[0] > 15) {
-        ctx.fillStyle = Math.random() > 0.3 ? "#fed7aa" : "#fef08a";
-        ctx.fillRect(x, y, 1.5, 1.5);
-      }
-    }
-
-    const earthTexture = new THREE.CanvasTexture(textureCanvas);
-    earthTexture.wrapS = THREE.RepeatWrapping;
-    earthTexture.wrapT = THREE.ClampToEdgeWrapping;
-
-    // 1. NASA Photorealistic Earth Sphere
     const earthGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
-    const earthMat = new THREE.MeshStandardMaterial({
-      map: earthTexture,
-      roughness: 0.65,
-      metalness: 0.15,
+    const earthMat = new THREE.MeshPhongMaterial({
+      map: earthMap,
+      specularMap: earthSpecular,
+      specular: new THREE.Color(0x334e68),
+      shininess: 25,
+      bumpScale: 0.05,
     });
     const earthMesh = new THREE.Mesh(earthGeo, earthMat);
     globeGroup.add(earthMesh);
 
-    // 2. NASA Clouds Swirl Layer
-    const cloudsCanvas = document.createElement("canvas");
-    cloudsCanvas.width = 1024;
-    cloudsCanvas.height = 512;
-    const cCtx = cloudsCanvas.getContext("2d")!;
-    cCtx.fillStyle = "rgba(0,0,0,0)";
-    cCtx.fillRect(0, 0, 1024, 512);
-    // Draw wispy atmospheric cloud bands
-    cCtx.fillStyle = "rgba(255,255,255,0.32)";
-    for (let i = 0; i < 60; i++) {
-      const cx = Math.random() * 1024;
-      const cy = 100 + Math.random() * 312;
-      cCtx.beginPath();
-      cCtx.ellipse(cx, cy, 80 + Math.random() * 120, 20 + Math.random() * 40, Math.random() * 0.4, 0, Math.PI * 2);
-      cCtx.fill();
-    }
-    const cloudsTexture = new THREE.CanvasTexture(cloudsCanvas);
-    cloudsTexture.wrapS = THREE.RepeatWrapping;
-
-    const cloudsGeo = new THREE.SphereGeometry(GLOBE_RADIUS + 0.8, 64, 64);
-    const cloudsMat = new THREE.MeshStandardMaterial({
-      map: cloudsTexture,
+    // 2. NASA Floating Atmospheric Cloud Sphere
+    const cloudsMap = textureLoader.load("/textures/earth_clouds_1024.png");
+    const cloudsGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.008, 64, 64);
+    const cloudsMat = new THREE.MeshPhongMaterial({
+      map: cloudsMap,
       transparent: true,
       opacity: 0.55,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
     const cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
     globeGroup.add(cloudsMesh);
@@ -207,7 +115,7 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
         varying vec3 vNormal;
         void main() {
           float intensity = pow(0.72 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
-          gl_FragColor = vec4(0.24, 0.68, 1.0, 1.0) * intensity * 0.65;
+          gl_FragColor = vec4(0.22, 0.65, 1.0, 1.0) * intensity * 0.75;
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -395,9 +303,40 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
       }
     };
 
+    // Touch Pinch-to-Zoom for Mobile & Tablet
+    let initialPinchDistance = 0;
+    let initialPinchZoom = 310;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        initialPinchDistance = Math.hypot(dx, dy);
+        initialPinchZoom = targetZoom;
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialPinchDistance > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        const factor = initialPinchDistance / dist;
+        targetZoom = Math.max(140, Math.min(460, initialPinchZoom * factor));
+
+        if (targetZoom <= 155 && selectedCityRef.current && onZoomIntoCityRef.current) {
+          onZoomIntoCityRef.current(selectedCityRef.current);
+          targetZoom = 230;
+        }
+      }
+    };
+
     container.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
+    container.addEventListener("touchstart", onTouchStart, { passive: true });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
     container.addEventListener("wheel", onWheel, { passive: false });
     container.addEventListener("dblclick", onDoubleClick);
 
@@ -478,6 +417,8 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
       container.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
       container.removeEventListener("wheel", onWheel);
       container.removeEventListener("dblclick", onDoubleClick);
       window.removeEventListener("resize", handleResize);
@@ -489,10 +430,11 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
       renderer.dispose();
       earthGeo.dispose();
       earthMat.dispose();
-      earthTexture.dispose();
+      earthMap.dispose();
+      earthSpecular.dispose();
       cloudsGeo.dispose();
       cloudsMat.dispose();
-      cloudsTexture.dispose();
+      cloudsMap.dispose();
       starsGeo.dispose();
       starsMat.dispose();
     };

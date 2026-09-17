@@ -101,15 +101,25 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             t={t}
           />
 
-          {/* Spotlight Bar */}
-          <SpotlightBar
-            stations={spotlightStations}
-            currentStation={currentStation}
-            isPlaying={isPlaying}
-            onPlayStation={onPlayStation}
-            t={t}
-          />
+          {/* Spotlight Bar (hidden when drawer is open on mobile) */}
+          {!isDrawerOpen && (
+            <SpotlightBar
+              stations={spotlightStations}
+              currentStation={currentStation}
+              isPlaying={isPlaying}
+              onPlayStation={onPlayStation}
+              t={t}
+            />
+          )}
         </>
+      )}
+
+      {/* Backdrop overlay for mobile drawer */}
+      {isDrawerOpen && (
+        <div
+          onClick={() => setIsDrawerOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm sm:hidden transition-opacity"
+        />
       )}
 
       {/* City Stations Drawer (Accessible in both Globe and Street mode) */}

@@ -113,17 +113,7 @@ export default function Home() {
     storage.saveLanguage(lang);
   };
 
-  // 2. Global Shortcut: Ctrl+K / Cmd+K
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+
 
   // 3. Fetch stations when selectedCity changes
   const loadStationsForCity = useCallback(async (city: City) => {
@@ -328,6 +318,98 @@ export default function Home() {
       setCurrentView("explore");
     }
   };
+
+  // 10. TV Remote & Global Keyboard Navigation (Smart TVs, Mobile Keyboards, Desktop)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is currently typing in search input
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+        if (e.key === "Escape") {
+          setIsSearchOpen(false);
+          target.blur();
+        }
+        return;
+      }
+
+      // Search: Ctrl+K / Cmd+K
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+        return;
+      }
+
+      // Play / Pause: Space
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+
+      // Next Station: ArrowRight or N
+      if (e.key === "ArrowRight" || e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        handleNextStation();
+        return;
+      }
+
+      // Previous Station: ArrowLeft or P
+      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        handlePreviousStation();
+        return;
+      }
+
+      // Volume Up: ArrowUp (+5%)
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        handleVolumeChange(Math.min(1, volume + 0.05));
+        return;
+      }
+
+      // Volume Down: ArrowDown (-5%)
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        handleVolumeChange(Math.max(0, volume - 0.05));
+        return;
+      }
+
+      // Mute / Unmute: M
+      if (e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        handleToggleMute();
+        return;
+      }
+
+      // Fullscreen / TV Mode: F
+      if (e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.().catch(() => {});
+        } else {
+          document.exitFullscreen?.().catch(() => {});
+        }
+        return;
+      }
+
+      // View Switching: 1 (Explorar), 2 (Descobrir), 3 (Biblioteca)
+      if (e.key === "1") {
+        setCurrentView("explore");
+      } else if (e.key === "2") {
+        setCurrentView("discover");
+      } else if (e.key === "3") {
+        setCurrentView("library");
+      }
+
+      // Close Search: Escape
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [togglePlay, handleNextStation, handlePreviousStation, volume, isMuted]);
 
   return (
     <main className="relative min-h-screen bg-[#050608] text-white overflow-hidden">

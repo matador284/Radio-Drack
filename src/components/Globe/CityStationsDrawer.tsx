@@ -37,15 +37,18 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
   return (
     <aside
       aria-label={`${t.drawer.stationsIn} ${city.name}`}
-      className="fixed inset-y-0 right-0 z-30 w-full sm:w-[420px] bg-[#07080c]/95 backdrop-blur-2xl border-l border-white/[0.08] shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-all duration-300 animate-in slide-in-from-right"
+      className="fixed top-16 sm:top-20 bottom-24 right-0 sm:right-6 w-full sm:w-[420px] lg:w-[460px] max-w-[100vw] z-50 bg-[#07080c]/98 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl shadow-[-10px_10px_50px_rgba(0,0,0,0.9)] flex flex-col transition-all duration-300 animate-in slide-in-from-bottom sm:slide-in-from-right overflow-hidden"
     >
+      {/* Mobile Drag Indicator */}
+      <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mt-2 sm:hidden flex-shrink-0" />
+
       {/* Header */}
-      <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-white/[0.08] flex items-center justify-between flex-shrink-0 bg-black/20">
         <div>
           <div className="text-[10px] font-mono tracking-widest text-[#e8c374] uppercase">
             {t.drawer.stationsIn} {city.country}
           </div>
-          <h3 className="text-2xl font-light text-white font-serif mt-0.5">
+          <h3 className="text-xl sm:text-2xl font-light text-white font-serif mt-0.5">
             {city.name}.
           </h3>
           <p className="text-xs text-white/40 font-mono mt-0.5">
@@ -55,7 +58,7 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
         <button
           onClick={onClose}
           aria-label="Close stations list"
-          className="p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white border border-white/[0.06] transition-all"
+          className="p-2 sm:p-2.5 rounded-xl bg-white/[0.05] hover:bg-white/15 text-white/70 hover:text-white border border-white/[0.08] transition-all focus-visible:ring-2 focus-visible:ring-[#e8c374]"
         >
           <X className="w-4 h-4" />
         </button>
@@ -94,10 +97,19 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
             return (
               <div
                 key={st.stationuuid || st.name}
-                className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-3 group ${
+                tabIndex={0}
+                role="button"
+                onClick={() => onPlayStation(st)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onPlayStation(st);
+                  }
+                }}
+                className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-3 group cursor-pointer focus-visible:ring-2 focus-visible:ring-[#e8c374] focus-visible:outline-none ${
                   isCurrent
-                    ? "bg-[#e8c374]/10 border-[#e8c374]/30 shadow-[0_0_20px_rgba(232,195,116,0.15)]"
-                    : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15"
+                    ? "bg-[#e8c374]/15 border-[#e8c374]/40 shadow-[0_0_20px_rgba(232,195,116,0.15)]"
+                    : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/20"
                 }`}
               >
                 {/* Station Icon & Info */}
@@ -123,11 +135,11 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-medium text-white/95 truncate">
+                      <h4 className="text-xs sm:text-sm font-medium text-white/95 truncate">
                         {st.name}
                       </h4>
                       {st.bitrate ? (
-                        <span className="text-[9px] font-mono text-white/30 tracking-wider">
+                        <span className="text-[9px] font-mono text-white/35 tracking-wider flex-shrink-0">
                           {st.bitrate}K
                         </span>
                       ) : null}
@@ -139,14 +151,14 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => onToggleFavorite(st)}
                     aria-label={fav ? "Remove favorite" : "Add to favorites"}
-                    className={`p-1.5 rounded-lg transition-all ${
+                    className={`p-2 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-[#e8c374] ${
                       fav
                         ? "text-rose-400 bg-rose-500/10"
-                        : "text-white/30 hover:text-white/80 opacity-0 group-hover:opacity-100"
+                        : "text-white/30 hover:text-white/80 opacity-60 sm:opacity-0 group-hover:opacity-100"
                     }`}
                   >
                     <Heart className={`w-3.5 h-3.5 ${fav ? "fill-current" : ""}`} />
@@ -155,16 +167,16 @@ export const CityStationsDrawer: React.FC<CityStationsDrawerProps> = ({
                   <button
                     onClick={() => onPlayStation(st)}
                     aria-label={isCurrent && isPlaying ? "Pause" : "Play"}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90 ${
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-white ${
                       isCurrent && isPlaying
                         ? "bg-[#e8c374] text-black shadow-[0_0_12px_rgba(232,195,116,0.4)]"
                         : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
                     }`}
                   >
                     {isCurrent && isPlaying ? (
-                      <Pause className="w-3.5 h-3.5 fill-current" />
+                      <Pause className="w-4 h-4 fill-current" />
                     ) : (
-                      <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
                     )}
                   </button>
                 </div>

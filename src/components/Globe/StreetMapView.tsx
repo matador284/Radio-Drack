@@ -28,7 +28,10 @@ export const StreetMapView: React.FC<StreetMapViewProps> = ({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
-  const [zoomLevel, setZoomLevel] = useState(13);
+  const baseTileLayerRef = useRef<L.TileLayer | null>(null);
+  const labelsTileLayerRef = useRef<L.TileLayer | null>(null);
+  const [mapMode, setMapMode] = useState<"satellite" | "dark">("satellite");
+  const [zoomLevel, setZoomLevel] = useState(14);
   const [coords, setCoords] = useState({ lat: city.lat, lng: city.lng });
 
   // Initialize Map
@@ -39,19 +42,34 @@ export const StreetMapView: React.FC<StreetMapViewProps> = ({
     // Create Leaflet map
     const map = L.map(mapContainerRef.current, {
       center: [city.lat, city.lng],
-      zoom: 13,
+      zoom: 14,
       minZoom: 4,
       maxZoom: 19,
       zoomControl: false,
     });
 
-    // Dark Matter tiles with all street names, avenue names, landmarks
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 19,
-    }).addTo(map);
+    // 1. Google Earth Style Satellite Imagery (Esri World Imagery - 100% Free, No API Key)
+    const satLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &copy; Maxar, Earthstar Geographics',
+        maxZoom: 19,
+      }
+    );
+
+    // 2. High-Res Streets, Avenues & Place Names Overlay
+    const labelsLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: "",
+        maxZoom: 19,
+      }
+    );
+
+    satLayer.addTo(map);
+    labelsLayer.addTo(map);
+    baseTileLayerRef.current = satLayer;
+    labelsTileLayerRef.current = labelsLayer;
 
     const markersLayer = L.layerGroup().addTo(map);
     markersLayerRef.current = markersLayer;
@@ -71,6 +89,52 @@ export const StreetMapView: React.FC<StreetMapViewProps> = ({
       mapInstanceRef.current = null;
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Switch between Satellite (Google Earth) and Dark Vector Map
+  const toggleMapStyle = (mode: "satellite" | "dark") => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    setMapMode(mode);
+
+    if (baseTileLayerRef.current) {
+      map.removeLayer(baseTileLayerRef.current);
+    }
+    if (labelsTileLayerRef.current) {
+      map.removeLayer(labelsTileLayerRef.current);
+      labelsTileLayerRef.current = null;
+    }
+
+    if (mode === "satellite") {
+      const satLayer = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &copy; Maxar, Earthstar Geographics',
+          maxZoom: 19,
+        }
+      ).addTo(map);
+
+      const labelsLayer = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: "",
+          maxZoom: 19,
+        }
+      ).addTo(map);
+
+      baseTileLayerRef.current = satLayer;
+      labelsTileLayerRef.current = labelsLayer;
+    } else {
+      const darkLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: "abc",
+        maxZoom: 19,
+        className: "dark-osm-tiles",
+      }).addTo(map);
+
+      baseTileLayerRef.current = darkLayer;
+    }
+  };
 
   // Fly to city when city changes
   useEffect(() => {
@@ -207,46 +271,74 @@ export const StreetMapView: React.FC<StreetMapViewProps> = ({
         </div>
       </div>
 
-      {/* Floating Controls on Top Right */}
-      <div className="absolute top-20 right-6 sm:right-12 z-20 flex flex-col gap-2 pointer-events-auto">
+      {/* Floating Controls on Top Right / Responsive */}
+      <div className="absolute top-20 right-4 sm:right-8 z-20 flex flex-col gap-2 pointer-events-auto items-end">
         {/* Return to NASA Globe button */}
         <button
           onClick={onReturnToGlobe}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#e8c374] hover:bg-[#f5d382] text-black text-xs font-mono font-semibold tracking-wider uppercase shadow-[0_0_25px_rgba(232,195,116,0.35)] transition-all active:scale-95"
+          className="flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#e8c374] hover:bg-[#f5d382] text-black text-xs font-mono font-semibold tracking-wider uppercase shadow-[0_0_25px_rgba(232,195,116,0.35)] transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
         >
           <Globe className="w-4 h-4" />
-          <span>Voltar ao Globo NASA</span>
+          <span>Voltar ao Globo</span>
         </button>
 
-        {/* Recenter button */}
-        <button
-          onClick={handleRecenter}
-          title="Recentralizar no ponto de rádio"
-          className="p-2.5 rounded-xl bg-[#07080c]/80 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 backdrop-blur-xl transition-all shadow flex items-center justify-center"
-        >
-          <Navigation className="w-4 h-4 text-[#e8c374]" />
-        </button>
+        {/* Map Style Switcher (Google Earth Satellite vs Dark Vector) */}
+        <div className="flex items-center rounded-xl bg-[#07080c]/90 border border-white/10 backdrop-blur-xl p-1 shadow-lg">
+          <button
+            onClick={() => toggleMapStyle("satellite")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono tracking-wider transition-all ${
+              mapMode === "satellite"
+                ? "bg-[#e8c374] text-black font-semibold shadow"
+                : "text-white/60 hover:text-white"
+            }`}
+            title="Visualizar satélite realista estilo Google Earth com ruas"
+          >
+            🛰️ Satélite
+          </button>
+          <button
+            onClick={() => toggleMapStyle("dark")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono tracking-wider transition-all ${
+              mapMode === "dark"
+                ? "bg-[#e8c374] text-black font-semibold shadow"
+                : "text-white/60 hover:text-white"
+            }`}
+            title="Visualizar mapa escuro de ruas OpenStreetMap"
+          >
+            🗺️ Escuro
+          </button>
+        </div>
 
-        {/* Zoom Controls */}
-        <div className="flex flex-col rounded-xl overflow-hidden bg-[#07080c]/80 border border-white/10 backdrop-blur-xl shadow">
+        <div className="flex items-center gap-2">
+          {/* Recenter button */}
           <button
-            onClick={handleZoomIn}
-            title="Aproximar ruas"
-            className="p-2.5 hover:bg-white/10 text-white/70 hover:text-white transition-colors border-b border-white/[0.06] flex items-center justify-center"
+            onClick={handleRecenter}
+            title="Recentralizar no ponto de rádio"
+            className="p-2.5 rounded-xl bg-[#07080c]/85 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 backdrop-blur-xl transition-all shadow flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#e8c374]"
           >
-            <ZoomIn className="w-4 h-4" />
+            <Navigation className="w-4 h-4 text-[#e8c374]" />
           </button>
-          <button
-            onClick={handleZoomOut}
-            title="Afastar mapa"
-            className="p-2.5 hover:bg-white/10 text-white/70 hover:text-white transition-colors flex items-center justify-center"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
+
+          {/* Zoom Controls */}
+          <div className="flex rounded-xl overflow-hidden bg-[#07080c]/85 border border-white/10 backdrop-blur-xl shadow">
+            <button
+              onClick={handleZoomIn}
+              title="Aproximar ruas"
+              className="p-2.5 hover:bg-white/10 text-white/70 hover:text-white transition-colors border-r border-white/[0.06] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#e8c374]"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleZoomOut}
+              title="Afastar mapa"
+              className="p-2.5 hover:bg-white/10 text-white/70 hover:text-white transition-colors flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#e8c374]"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Custom Popup Style */}
+      {/* Custom Popup and Tile Filters */}
       <style jsx global>{`
         .leaflet-popup-content-wrapper {
           background: rgba(11, 14, 20, 0.96) !important;
@@ -259,6 +351,9 @@ export const StreetMapView: React.FC<StreetMapViewProps> = ({
         }
         .leaflet-container {
           background: #050608 !important;
+        }
+        .dark-osm-tiles {
+          filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(90%) !important;
         }
       `}</style>
     </div>
